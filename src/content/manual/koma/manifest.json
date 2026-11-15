@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "surface": "koma",
+  "version": "0.0.1",
+  "locales": [
+    "en",
+    "zh-CN",
+    "ja"
+  ],
+  "sections": [
+    {
+      "id": "getting-started",
+      "title": {
+        "en": "Getting Started",
+        "zh-CN": "快速入门",
+        "ja": "はじめに"
+      },
+      "items": [
+        {
+          "slug": "home",
+          "path": "getting-started/home.md",
+          "title": {
+            "en": "Home",
+            "zh-CN": "首页",
+            "ja": "ホーム"
+          }
+        },
+        {
+          "slug": "installation",
+          "path": "getting-started/installation.md",
+          "title": {
+            "en": "Installation & Acceptance Boundaries",
+            "zh-CN": "安装指南与验收边界",
+            "ja": "インストールと承認境界"
+          }
+        },
+        {
+          "slug": "quickstart",
+          "path": "getting-started/quickstart.md",
+          "title": {
+            "en": "Session Launch & Default Keymap",
+            "zh-CN": "会话启动与默认快捷键",
+            "ja": "セッション起動と既定キーマップ"
+          }
+        },
+        {
+          "slug": "platforms",
+          "path": "getting-started/platforms.md",
+          "title": {
+            "en": "ARM64, MacBook Linux & BSD",
+            "zh-CN": "ARM64、MacBook Linux 与 BSD",
+            "ja": "ARM64・MacBook Linux・BSD 対応"
+          }
+        }
+      ]
+    },
+    {
+      "id": "configuration",
+      "title": {
+        "en": "Lua Configuration",
+        "zh-CN": "Lua 配置指南",
+        "ja": "Lua 設定ガイド"
+      },
+      "items": [
+        {
+          "slug": "init-lua",
+          "path": "configuration/init-lua.md",
+          "title": {
+            "en": "Layouts, Appearance & Overrides",
+            "zh-CN": "布局模式、视觉外观与增量覆盖",
+            "ja": "レイアウト・外観・キー上書き"
+          }
+        },
+        {
+          "slug": "lua-types",
+          "path": "configuration/lua-types.md",
+          "title": {
+            "en": "LuaLS Type Completion (koma-types)",
+            "zh-CN": "LuaLS 智能补全接入 (koma-types)",
+            "ja": "LuaLS 型補完の導入 (koma-types)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ipc",
+      "title": {
+        "en": "IPC & Security",
+        "zh-CN": "IPC 协议与安全",
+        "ja": "IPC とセキュリティ"
+      },
+      "items": [
+        {
+          "slug": "sockets-and-epochs",
+          "path": "ipc/sockets-and-epochs.md",
+          "title": {
+            "en": "Dual Sockets, Epoch Leases & MCP",
+            "zh-CN": "双通道套接字、Epoch 租约与 MCP",
+            "ja": "二系統ソケット・Epoch リース・MCP"
+          }
+        }
+      ]
+    }
+  ]
+}

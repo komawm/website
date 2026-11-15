@@ -1,0 +1,9 @@
+# Koma & Jiku versioned & lowercase locale redirects across en, zh-CN, and ja
+/zh-cn /zh-CN/ 301
+/zh-cn/* /zh-CN/:splat 301
+/docs/latest/zh-CN/* /zh-CN/docs/:splat 301
+/docs/latest/ja/* /ja/docs/:splat 301
+/docs/latest/* /docs/:splat 301
+/jiku/docs/latest/zh-CN/* /zh-CN/jiku/docs/:splat 301
+/jiku/docs/latest/ja/* /ja/jiku/docs/:splat 301
+/jiku/docs/latest/* /jiku/docs/:splat 301

@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "surface": "jiku",
+  "version": "0.0.1",
+  "locales": [
+    "en",
+    "zh-CN",
+    "ja"
+  ],
+  "sections": [
+    {
+      "id": "getting-started",
+      "title": {
+        "en": "Getting Started",
+        "zh-CN": "快速入门",
+        "ja": "はじめに"
+      },
+      "items": [
+        {
+          "slug": "overview",
+          "path": "getting-started/overview.md",
+          "title": {
+            "en": "Three-Driver Architecture",
+            "zh-CN": "Three-Driver 三驱动编排架构",
+            "ja": "Three-Driver オーケストレーション設計"
+          }
+        },
+        {
+          "slug": "configuration",
+          "path": "getting-started/configuration.md",
+          "title": {
+            "en": "Daemon Config & Policy Sandbox",
+            "zh-CN": "守护进程配置与策略沙箱",
+            "ja": "デーモン設定とポリシーサンドボックス"
+          }
+        }
+      ]
+    },
+    {
+      "id": "memory-and-mcp",
+      "title": {
+        "en": "Memory & MCP",
+        "zh-CN": "记忆系统与 MCP",
+        "ja": "メモリ階層と MCP"
+      },
+      "items": [
+        {
+          "slug": "memory-tiers",
+          "path": "memory-and-mcp/memory-tiers.md",
+          "title": {
+            "en": "L0–L2 SQLite FTS5 Memory & Skills",
+            "zh-CN": "L0–L2 三层记忆与技能审批门禁",
+            "ja": "L0–L2 記憶階層とスキル承認ゲート"
+          }
+        }
+      ]
+    }
+  ]
+}

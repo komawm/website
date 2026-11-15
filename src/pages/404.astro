@@ -1,0 +1,109 @@
+---
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { getUiMessages } from "../lib/i18n.ts";
+import "../styles/global.css";
+
+const tEn = getUiMessages("en");
+const tZh = getUiMessages("zh-CN");
+const tJa = getUiMessages("ja");
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content={tEn.notFoundDesc} />
+    <link rel="icon" type="image/svg+xml" href="/icons/koma-mark.svg" />
+    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>404 — Koma</title>
+    <script is:inline>
+      try {
+        const s = window.localStorage.getItem("komawm-theme");
+        const dark = s
+          ? s === "dark"
+          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">{tEn.skipToContent}</a>
+    <SiteHeader locale="en" surface="koma" />
+
+    <main id="main-content" class="not-found" tabindex="-1">
+      <article class="not-found-card">
+        <p class="not-found-kicker">HTTP 404 // ROUTE NOT FOUND</p>
+        <h1>{tEn.notFoundTitle}</h1>
+        <p>{tEn.notFoundDesc}</p>
+        <p lang="zh-CN">{tZh.notFoundDesc}</p>
+        <p lang="ja">{tJa.notFoundDesc}</p>
+        <div class="not-found-links">
+          <a href="/">{tEn.notFoundBackKoma}</a>
+          <a href="/docs/">{tEn.notFoundBackDocs}</a>
+          <a href="/jiku/">{tEn.navJiku}</a>
+          <a href="/jiku/docs/">{tEn.notFoundBackJiku}</a>
+        </div>
+      </article>
+    </main>
+
+    <SiteFooter locale="en" />
+  </body>
+</html>
+
+<style>
+  .not-found {
+    width: min(46rem, calc(100% - 2rem));
+    margin-inline: auto;
+    padding-block: clamp(3.5rem, 8vw, 6rem);
+  }
+  .not-found-card {
+    padding: 2rem;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-xs);
+  }
+  .not-found-kicker {
+    margin: 0 0 0.5rem;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .not-found-card h1 {
+    margin: 0 0 0.75rem;
+    font-size: 1.7rem;
+    color: var(--fg-heading);
+  }
+  .not-found-card p {
+    margin: 0.5rem 0;
+    color: var(--fg-secondary);
+    font-size: 0.92rem;
+  }
+  .not-found-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.35rem;
+  }
+  .not-found-links a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-decoration: none;
+  }
+  .not-found-links a:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+</style>

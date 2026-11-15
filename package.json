@@ -1,0 +1,44 @@
+{
+  "name": "komawm-website",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 ./node_modules/.bin/astro dev",
+    "fmt": "bun fmt --no-script astro.config.mjs package.json tsconfig.json wrangler.jsonc scripts src/data src/lib src/styles src/worker.ts src/worker.test.ts",
+    "fmt:check": "bun fmt --no-script --check astro.config.mjs package.json tsconfig.json wrangler.jsonc scripts src/data src/lib src/styles src/worker.ts src/worker.test.ts",
+    "lint": "bun scripts/lint.ts",
+    "test": "bun test src",
+    "typecheck": "ASTRO_TELEMETRY_DISABLED=1 ./node_modules/.bin/astro sync && bun check --no-script -p tsconfig.json",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 ./node_modules/.bin/astro build",
+    "validate:dist": "bun scripts/validate-dist.ts",
+    "wrangler:dry-run": "bash -euo pipefail -c 'out=$(mktemp -d /tmp/komawm-wrangler-dry-run.XXXXXX); trap \"rm -rf $out\" EXIT; WRANGLER_SEND_METRICS=false ./node_modules/.bin/wrangler deploy --dry-run --outdir \"$out\"'",
+    "sync:manual": "bun scripts/sync-manual.ts",
+    "sync:manual:if-available": "bun scripts/sync-manual.ts --if-available",
+    "check": "bun run sync:manual:if-available && bun run fmt:check && bun run lint && bun run test && bun run typecheck && bun run build && bun run validate:dist && bun run wrangler:dry-run",
+    "deploy": "WRANGLER_SEND_METRICS=false ./node_modules/.bin/wrangler deploy"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource-variable/noto-sans-jp": "5.3.0",
+    "@fontsource-variable/noto-sans-sc": "5.3.0"
+  },
+  "devDependencies": {
+    "@shikijs/rehype": "4.5.0",
+    "astro": "7.3.3",
+    "bun-types": "1.4.4",
+    "github-slugger": "2.0.0",
+    "rehype-autolink-headings": "7.1.0",
+    "rehype-slug": "6.0.0",
+    "rehype-stringify": "10.0.1",
+    "remark-gfm": "4.0.1",
+    "remark-github-blockquote-alert": "2.1.0",
+    "remark-parse": "11.0.0",
+    "remark-rehype": "11.1.2",
+    "shiki": "4.5.0",
+    "unified": "11.0.5",
+    "wrangler": "4.136.0"
+  },
+  "packageManager": "bun@1.4.4"
+}

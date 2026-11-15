@@ -11,10 +11,10 @@ ensure-deps:
     test -x node_modules/.bin/wrangler || { echo "wrangler missing; run 'just install' first" >&2; exit 1; }
 
 fmt:
-    bun fmt --no-script
+    bun run fmt
 
 fmt-check:
-    bun fmt --no-script --check
+    bun run fmt:check
 
 fmt-check-files *FILES:
     bun fmt --no-script --check --ignore-unknown {{FILES}}

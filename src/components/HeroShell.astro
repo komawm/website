@@ -1,0 +1,400 @@
+---
+import InstallDock from "./InstallDock.astro";
+import SiteFooter from "./SiteFooter.astro";
+import SiteHeader from "./SiteHeader.astro";
+import {
+  getUiMessages,
+  localizePath,
+  SUPPORTED_LOCALES,
+  type HeroFeature,
+  type ProductSurface,
+  type ShowcaseItem,
+  type SiteLocale,
+} from "../lib/i18n.ts";
+import "../styles/global.css";
+
+interface Props {
+  locale: SiteLocale;
+  surface: ProductSurface;
+  siteTitle: string;
+  kicker: string;
+  tagline: string;
+  heroTitle: string;
+  heroDesc: string;
+  primaryCtaLabel: string;
+  primaryCtaHref: string;
+  installCtaLabel: string;
+  siblingCtaLabel: string;
+  siblingCtaHref: string;
+  optionalNote?: string;
+  featuresHeading: string;
+  features: readonly HeroFeature[];
+  showcase: readonly ShowcaseItem[];
+}
+
+const {
+  locale,
+  surface,
+  siteTitle,
+  kicker,
+  tagline,
+  heroTitle,
+  heroDesc,
+  primaryCtaLabel,
+  primaryCtaHref,
+  installCtaLabel,
+  siblingCtaLabel,
+  siblingCtaHref,
+  optionalNote,
+  featuresHeading,
+  features,
+  showcase,
+} = Astro.props;
+
+const t = getUiMessages(locale);
+---
+
+<!doctype html>
+<html lang={locale} data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={heroDesc} />
+    <link rel="icon" type="image/svg+xml" href="/icons/koma-mark.svg" />
+    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link
+      rel="canonical"
+      href={`https://komawm.org${localizePath(Astro.url.pathname, locale)}`}
+    />
+    {SUPPORTED_LOCALES.map((loc) => (
+      <link
+        rel="alternate"
+        hreflang={loc}
+        href={`https://komawm.org${localizePath(Astro.url.pathname, loc)}`}
+      />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={`https://komawm.org${localizePath(Astro.url.pathname, "en")}`}
+    />
+    <title>{siteTitle}</title>
+    <script is:inline>
+      try {
+        const s = window.localStorage.getItem("komawm-theme");
+        const dark = s
+          ? s === "dark"
+          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch {}
+    </script>
+  </head>
+  <body class="site-body">
+    <a class="skip-link" href="#main-content">{t.skipToContent}</a>
+    <SiteHeader locale={locale} surface={surface} />
+
+    <main id="main-content" class="home-main" tabindex="-1">
+      <div class="hero-backdrop" aria-hidden="true"></div>
+
+      <section class="hero-minimal" aria-labelledby="hero-title">
+        <span class="hero-kicker">
+          <span class="hero-dot" aria-hidden="true"></span>
+          {`${kicker} · ${tagline}`}
+        </span>
+
+        <h1 id="hero-title">{heroTitle}</h1>
+        <p class="hero-description">{heroDesc}</p>
+
+        {optionalNote && <p class="hero-note">{optionalNote}</p>}
+
+        <div class="hero-actions">
+          <a class="primary-action" href={primaryCtaHref}>
+            <span>{primaryCtaLabel}</span>
+            <span aria-hidden="true">→</span>
+          </a>
+          <a class="secondary-action" href="#install">
+            <span>{installCtaLabel}</span>
+            <span aria-hidden="true">↓</span>
+          </a>
+          <a class="secondary-action" href={siblingCtaHref}>
+            <span>{siblingCtaLabel}</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="features-shell" aria-labelledby="features-title">
+        <h2 id="features-title" class="visually-hidden">
+          {featuresHeading}
+        </h2>
+        <div class="features-grid">
+          {features.map((feat, idx) => (
+            <article class="feature-card">
+              <span class="feature-num">{`0${idx + 1}`}</span>
+              <h3>{feat.title}</h3>
+              <p>{feat.desc}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="showcase-shell" aria-labelledby="showcase-title">
+        <h2 id="showcase-title" class="section-subtitle">
+          {t.showcaseHeading}
+        </h2>
+        <div
+          class:list={[
+            "showcase-grid",
+            { "showcase-grid-two": showcase.length === 2 },
+          ]}
+        >
+          {showcase.map((item) => (
+            <figure class="showcase-card">
+              <img
+                src={item.image}
+                alt={item.title}
+                loading="lazy"
+                decoding="async"
+                width="640"
+                height="360"
+              />
+              <figcaption>
+                <strong>{item.title}</strong>
+                <span>{item.caption}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      <InstallDock locale={locale} surface={surface} />
+    </main>
+
+    <SiteFooter locale={locale} />
+  </body>
+</html>
+
+<style>
+  .site-body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-canvas);
+    color: var(--fg-primary);
+  }
+  .home-main {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    max-width: none;
+    padding-block: 0 3.75rem;
+    overflow-x: clip;
+  }
+  .hero-backdrop {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 24rem;
+    background-image:
+      radial-gradient(
+        ellipse 50% 45% at 50% -15%,
+        var(--accent-soft),
+        transparent 70%
+      ),
+      radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      24px 24px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-minimal,
+  .features-shell,
+  .showcase-shell {
+    position: relative;
+    z-index: 1;
+    width: min(64rem, calc(100% - 2rem));
+    margin-inline: auto;
+  }
+  .hero-minimal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-block: clamp(2.75rem, 6vw, 4.25rem) clamp(2rem, 4vw, 2.75rem);
+  }
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
+    padding: 0.2rem 0.7rem;
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.69rem;
+    font-weight: 600;
+  }
+  .hero-dot {
+    width: 0.38rem;
+    height: 0.38rem;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .hero-minimal h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.85rem, 3.2vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.028em;
+    color: var(--fg-heading);
+  }
+  .hero-description {
+    max-width: 44rem;
+    margin: 0.85rem 0 0;
+    color: var(--fg-secondary);
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+  .hero-note {
+    max-width: 40rem;
+    margin: 0.75rem 0 0;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--note-border);
+    border-radius: var(--radius-sm);
+    background: var(--note-bg);
+    color: var(--note-fg);
+    font-size: 0.8rem;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+  }
+  .primary-action,
+  .secondary-action {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1.15rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: var(--shadow-xs);
+  }
+  .primary-action {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .primary-action:hover {
+    border-color: var(--accent-hover);
+    background: var(--accent-hover);
+  }
+  .secondary-action {
+    border: 1px solid var(--border-hairline);
+    background: var(--bg-surface);
+    color: var(--fg-primary);
+  }
+  .secondary-action:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elevated);
+  }
+  .features-shell {
+    padding-block: 0.5rem 2.25rem;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .feature-card {
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-xs);
+  }
+  .feature-num {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .feature-card h3 {
+    margin: 0 0 0.4rem;
+    font: 600 0.96rem var(--font-display);
+    color: var(--fg-heading);
+  }
+  .feature-card p {
+    margin: 0;
+    color: var(--fg-secondary);
+    font-size: 0.84rem;
+    line-height: 1.58;
+  }
+  .showcase-shell {
+    padding-block: 0.25rem 2.25rem;
+  }
+  .section-subtitle {
+    margin: 0 0 0.85rem;
+    font: 700 1.15rem var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--fg-heading);
+  }
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .showcase-grid-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .showcase-card {
+    margin: 0;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+    box-shadow: var(--shadow-xs);
+  }
+  .showcase-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .showcase-card figcaption {
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .showcase-card strong {
+    font-size: 0.86rem;
+    color: var(--fg-heading);
+  }
+  .showcase-card span {
+    font-size: 0.79rem;
+    color: var(--fg-secondary);
+    line-height: 1.45;
+  }
+  @media (max-width: 840px) {
+    .features-grid,
+    .showcase-grid,
+    .showcase-grid-two {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

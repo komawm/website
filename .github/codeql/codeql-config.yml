@@ -1,0 +1,4 @@
+name: komawm-website CodeQL config
+paths-ignore:
+  - dist
+  - src/content/manual
