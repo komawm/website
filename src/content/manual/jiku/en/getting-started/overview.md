@@ -1,37 +1,33 @@
-# Three-Driver Architecture
+# Jiku Overview
 
 > [!NOTE]
-> **Jiku** (`jikud` and `jiku`) is an optional, standalone desktop orchestration daemon hosted at [komawm/jiku](https://github.com/komawm/jiku). [Koma](/) runs completely independently with zero AI dependencies when Jiku is not installed.
+> **Jiku** (`jikud` and `jiku`) is an optional standalone companion daemon and CLI hosted at [komawm/jiku](https://github.com/komawm/jiku). [Koma](/) runs completely independently with no AI dependencies when Jiku is not installed.
 
-![Jiku 15x15 Kumiko lattice and acoustic waves on indigo kozo washi](/placeholders/jiku-grid.webp "Jiku 15×15 spatial decision lattice (gemini-decision-1) paired with AvatarCue acoustic envelope waves.")
+![Jiku inspecting and automating a paint window inside Koma](/media/jiku-paint.webp "Jiku inspecting a paint window inside Koma using screenshot capture and grid targeting.")
 
-## Core Design: Three Specialized Model Drivers
+## What Jiku Does
 
-Jiku separates sub-second closed-set visual triage, deliberative multi-step planning, and optional real-time voice interaction into three decoupled drivers inside `jikud`:
+Jiku separates fast screen checks, multi-step task planning, and optional audio output into a user-space daemon (`jikud`) and CLI (`jiku`):
 
-| Driver | Role | Default Endpoint & Contract |
+- **Background daemon (`jikud`)**: Listens on `$XDG_RUNTIME_DIR/jiku.sock`, requests screenshot captures from Koma, evaluates decision prompts and planner models, enforces your Lua policy script, and sends virtual keyboard/pointer actions back to Koma.
+- **Operator CLI and MCP server (`jiku`)**: Checks daemon health, validates config and Lua policies, runs decision prompts or multi-step tasks, classifies directories in `~/JikuBox`, searches full-text local history, manages skill approvals, and exposes tools over stdio MCP.
+- **Local state and history (`~/.local/state/jiku/state.db`)**: Deduplicates unchanged frames, caches per-application shortcuts, stores full-text local history, and holds generated skill drafts until reviewed.
+- **Notifications and optional speech (`[notify]` / `[tts]`)**: Sends desktop notifications over D-Bus by default; text-to-speech (`VOICEVOX`, `OpenAI` speech, or `noop`) is disabled by default.
+
+## Model Roles
+
+| Role | Purpose | Default Model & Fallback |
 | :--- | :--- | :--- |
-| **`DecisionsDriver`** | Sub-second UI state checks, `grid_225` targeting, safety gates & `~/JikuBox` triage | `gemini-decision-1` (`POST /v1beta/decisions`, `total_output_tokens == 0`, with automatic `EmulatedStructuredTextModel` JSON-Schema fallback) |
-| **`TurnModelDriver`** | Multi-step workspace planning, System-2 fallback (`< 0.85`), skill synthesis | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash` (`thinking = false`), plus OpenAI-compatible, Google AI Studio, and Anthropic providers |
-| **`LiveSessionDriver`** | Optional full-duplex voice & `AvatarCue` session transport | Gemini `BidiGenerateContent` WebSocket (disabled by default; live PipeWire audio I/O targeted for `v0.1.0`) |
+| **Decision prompt (`[roles.decision_router]`)** | Fast UI state checks, `grid_225` coordinate targeting, safety gates, and `~/JikuBox` classification | `gemini-decision-1` (`GEMINI_API_KEY`); automatically falls back to the planner model using structured JSON output when no Gemini key is set |
+| **Planner model (`[roles.planner]`)** | Multi-step task planning, fallback when decision confidence is below `0.85`, and skill drafting | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash` (`thinking = false`), plus OpenAI-compatible, Google AI Studio, and Anthropic endpoints |
+| **Live voice session (optional)** | Experimental full-duplex voice transport | Gemini `BidiGenerateContent` WebSocket (disabled by default; live PipeWire audio I/O is planned for `v0.1.0`) |
 
-## Workspace Crates (`#![forbid(unsafe_code)]`)
+## Observe → Decide → Plan → Act Loop
 
-All four Jiku crates (`jikud`, `jiku`, `jiku-memory`, `jiku-tts`) enforce `#![forbid(unsafe_code)]` and zero raw FFI:
-
-| Crate | Kind | Responsibility |
-| :--- | :--- | :--- |
-| `jikud` | Library + Binary | `$XDG_RUNTIME_DIR/jiku.sock` RPC daemon, Three-Driver clients, `DecisionCompiler`, `Phodopus` Lua policy hooks, `KomaIpcClient` (`File::from(fd)` sealed `memfd` reads) |
-| `jiku` | Binary | CLI controller (`status`, `validate-config`, `decide`, `plan`, `run`, `box classify`, `memory search`, `skills`, `mcp`) |
-| `jiku-memory` | Library | L0 perceptual `dHash` frame ring, L1 per-app quirks, L2 SQLite WAL + FTS5 BM25 memory, `staged_skills` approval store |
-| `jiku-tts` | Library | Optional `TtsProvider` (`VOICEVOX`, `OpenAI` speech, `noop`) + `AvatarCue` packet models |
-
-## Observe → Decide → Plan → Koma Action Loop
-
-1. **Observe**: `jikud` connects to `koma-agent.sock` with a scoped `CapabilityToken` and requests `capture.frame` (`SCM_RIGHTS` sealed `memfd`, masked for `block_out_from` surfaces) plus `Epoch`.
-2. **Decide (`DecisionsDriver`)**: Evaluates calibrated binary `Noul` safety checklists (`15` rules) and `Choice` questions (`NONE_OR_OTHER` open-world escape) over `15×15` `grid_225` cells.
-3. **Plan (`TurnModelDriver`)**: Escalates ambiguous states (`< 0.85` confidence) to `[roles.planner]` (`deepseek-v4.1-flash` or configured LLM) to synthesize structured steps or candidate Lua skills.
-4. **Act (`KomaIpcClient`)**: Executes `vseat.click`, `vseat.key`, `vseat.inject_text`, or `macro.exec` with `expected_epoch`, stopping immediately on `4090 ERR_STALE_EPOCH`, `4091 ERR_HUMAN_PREEMPTED`, or `4032 ERR_PROTECTED_SURFACE`.
+1. **Observe**: `jikud` connects to `koma-agent.sock` using a scoped `CapabilityToken` and calls `capture.frame` for a read-only screenshot capture (with `block_out_from` surfaces masked by Koma) and the current `Epoch`.
+2. **Decide**: Evaluates a 15-item safety checklist, closed-set choices (with `NONE_OR_OTHER` fallback), and `15×15` `grid_225` target coordinates.
+3. **Plan**: Escalates ambiguous states (`< 0.85` confidence) or open-ended goals to `[roles.planner]` to produce concrete actions or draft reusable skills.
+4. **Act**: Sends `vseat.click`, `vseat.key`, `vseat.inject_text`, or `macro.exec` tagged with `expected_epoch`, stopping immediately on `4090 ERR_STALE_EPOCH`, `4091 ERR_HUMAN_PREEMPTED`, or `4032 ERR_PROTECTED_SURFACE`.
 
 ## Quick CLI Tour
 

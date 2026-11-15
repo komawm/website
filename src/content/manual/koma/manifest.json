@@ -20,36 +20,36 @@
           "slug": "home",
           "path": "getting-started/home.md",
           "title": {
-            "en": "Home & Architecture",
-            "zh-CN": "首页与架构总览",
-            "ja": "ホームとアーキテクチャ概要"
+            "en": "Overview",
+            "zh-CN": "概览",
+            "ja": "概要"
           }
         },
         {
           "slug": "installation",
           "path": "getting-started/installation.md",
           "title": {
-            "en": "Installation & Channels",
-            "zh-CN": "多发行版安装与渠道",
-            "ja": "インストールと配布チャネル"
+            "en": "Installation",
+            "zh-CN": "安装指南",
+            "ja": "インストール"
           }
         },
         {
           "slug": "quickstart",
           "path": "getting-started/quickstart.md",
           "title": {
-            "en": "Session Launch & Default Keymap",
-            "zh-CN": "会话启动与默认快捷键",
-            "ja": "セッション起動と既定キーマップ"
+            "en": "Getting Started & Keybindings",
+            "zh-CN": "初次使用与快捷键",
+            "ja": "起動と基本操作"
           }
         },
         {
           "slug": "platforms",
           "path": "getting-started/platforms.md",
           "title": {
-            "en": "ARM64, MacBook Linux & BSD",
-            "zh-CN": "ARM64、MacBook Linux 与 BSD",
-            "ja": "ARM64・MacBook Linux・BSD 対応"
+            "en": "Hardware & Platforms",
+            "zh-CN": "硬件与平台支持",
+            "ja": "ハードウェアと対応環境"
           }
         }
       ]
@@ -66,45 +66,45 @@
           "slug": "init-lua",
           "path": "configuration/init-lua.md",
           "title": {
-            "en": "Lua Sandbox, Layouts & Appearance",
-            "zh-CN": "Lua 沙箱、布局与视觉外观",
-            "ja": "Lua サンドボックス・レイアウト・外観"
+            "en": "Layouts, Windows & init.lua",
+            "zh-CN": "布局、窗口与 init.lua",
+            "ja": "レイアウト・ウィンドウ・init.lua"
           }
         },
         {
           "slug": "monitors-and-input",
           "path": "configuration/monitors-and-input.md",
           "title": {
-            "en": "Multi-Monitor 2D Layout & Input",
-            "zh-CN": "多显示器 2D 布局与输入设备",
-            "ja": "マルチモニター 2D 配置と入力デバイス"
+            "en": "Monitors & Input",
+            "zh-CN": "显示器与输入设备",
+            "ja": "モニターと入力設定"
           }
         },
         {
           "slug": "window-rules",
           "path": "configuration/window-rules.md",
           "title": {
-            "en": "Window Rules & Protected Surfaces",
-            "zh-CN": "窗口规则与受保护表面",
-            "ja": "ウィンドウルールと保護サーフェス"
+            "en": "Window Rules & Floating",
+            "zh-CN": "窗口规则与浮动窗口",
+            "ja": "ウィンドウルールとフロート"
           }
         },
         {
           "slug": "animations-and-rice",
           "path": "configuration/animations-and-rice.md",
           "title": {
-            "en": "Hooke Spring Physics, Bezier Curves & Ricing",
-            "zh-CN": "胡克弹簧物理、贝塞尔曲线与视觉美化",
-            "ja": "フックの法則バネ物理・ベジェ曲線・外観カスタマイズ"
+            "en": "Animations, Borders & Blur",
+            "zh-CN": "动画、边框与模糊",
+            "ja": "アニメーション・枠線・ブラー"
           }
         },
         {
           "slug": "lua-types",
           "path": "configuration/lua-types.md",
           "title": {
-            "en": "LuaLS Type Completion (koma-types)",
-            "zh-CN": "LuaLS 类型补全接入 (koma-types)",
-            "ja": "LuaLS 型補完の導入 (koma-types)"
+            "en": "Editor Completion (koma-types)",
+            "zh-CN": "编辑器类型补全 (koma-types)",
+            "ja": "エディタ補完 (koma-types)"
           }
         }
       ]
@@ -113,7 +113,7 @@
       "id": "protocols-and-tools",
       "title": {
         "en": "Protocols & CLI Tools",
-        "zh-CN": "协议支持与命令行工具",
+        "zh-CN": "协议与命令行工具",
         "ja": "プロトコルと CLI ツール"
       },
       "items": [
@@ -121,18 +121,18 @@
           "slug": "wayland-protocols",
           "path": "protocols-and-tools/wayland-protocols.md",
           "title": {
-            "en": "Wayland Protocols, Portals & IME",
-            "zh-CN": "Wayland 协议、Portal 与输入法",
-            "ja": "Wayland プロトコル・Portal・IME"
+            "en": "Panels, Portals, IME & Apps",
+            "zh-CN": "状态栏、Portal、输入法与应用兼容",
+            "ja": "パネル・Portal・IME・アプリ互換"
           }
         },
         {
           "slug": "cli-and-overview",
           "path": "protocols-and-tools/cli-and-overview.md",
           "title": {
-            "en": "komactl CLI & koma-overview",
-            "zh-CN": "komactl 命令行与全局概览",
-            "ja": "komactl CLI と koma-overview"
+            "en": "komactl & Workspace Overview",
+            "zh-CN": "komactl 与工作区概览",
+            "ja": "komactl とワークスペース概観"
           }
         }
       ]
@@ -140,27 +140,27 @@
     {
       "id": "ipc",
       "title": {
-        "en": "IPC & Security",
-        "zh-CN": "IPC 协议与安全",
-        "ja": "IPC とセキュリティ"
+        "en": "IPC & Automation",
+        "zh-CN": "IPC 与自动化",
+        "ja": "IPC と自動化"
       },
       "items": [
         {
           "slug": "sockets-and-epochs",
           "path": "ipc/sockets-and-epochs.md",
           "title": {
-            "en": "Dual Sockets, Epoch Leases & MCP",
-            "zh-CN": "双通道套接字、Epoch 租约与 MCP",
-            "ja": "二系統ソケット・Epoch リース・MCP"
+            "en": "IPC & Workspace Leases",
+            "zh-CN": "IPC 与工作区租约",
+            "ja": "IPC とワークスペースリース"
           }
         },
         {
           "slug": "troubleshooting",
           "path": "ipc/troubleshooting.md",
           "title": {
-            "en": "Diagnostics & Troubleshooting FAQ",
-            "zh-CN": "诊断与常见排障指南",
-            "ja": "診断とトラブルシューティング FAQ"
+            "en": "Troubleshooting",
+            "zh-CN": "常见问题排查",
+            "ja": "トラブルシューティング"
           }
         }
       ]

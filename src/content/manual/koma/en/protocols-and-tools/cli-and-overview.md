@@ -1,6 +1,6 @@
-# komactl CLI & koma-overview
+# komactl & Workspace Overview
 
-`komactl` is Koma's `adb`-style administration CLI (`koma-admin.sock`) and offline Lua validator, while `koma-overview` provides a `wlr-layer-shell` spatial Exposé across all workspaces.
+`komactl` is Koma's administration CLI (`koma-admin.sock`) and offline Lua validator, while `koma-overview` provides a `wlr-layer-shell` spatial overview across all workspaces.
 
 ## `komactl` Command Reference
 
@@ -8,11 +8,11 @@
 
 | Command | Mode | Description |
 | :--- | :--- | :--- |
-| `komactl validate [path/to/init.lua]` | Offline | Evaluates `init.lua` in the Phodopus shadow sandbox, validates rule regexes & gestures, and prints resource counts |
+| `komactl validate [path/to/init.lua]` | Offline | Evaluates `init.lua` in the isolated Lua sandbox, validates rule regexes & gestures, and prints resource counts |
 | `komactl reload [path/to/init.lua]` | IPC (`admin.sock`) | Sends `config.reload` and atomically swaps live compositor configuration |
 | `komactl config-status` | IPC (`admin.sock`) | Prints active config path, reload generation, and last error if any (`config.status`) |
 | `komactl gen-types` | Offline | Emits deterministic `LuaCATS` stubs for `koma-types` (`types/koma.lua`) |
-| `komactl inventory` | IPC (`admin.sock`) | Prints live monitors, workspaces, Epoch counters, Deck windows, and Stash slots (`scene.inventory`) |
+| `komactl inventory` | IPC (`admin.sock`) | Prints live monitors, workspaces, `Epoch` counters, Deck windows, and Stash slots (`scene.inventory`) |
 | `komactl token mint [label]` | IPC (`admin.sock`) | Mints a scoped `CapabilityToken` (`ttl_secs = 28800`, `can_create_headless = true`, `max_owned_workspaces = 4`) |
 | `komactl capture [ws_id] [out.rgba]` | IPC (`admin.sock`) | Captures a zero-copy `SCM_RIGHTS` sealed `memfd` frame with `grid_225` overlay (`ws_id` default `ws_01`) |
 | `komactl sandbox <subcmd>` | Container + IPC | Runs `bwrap` or rootless `podman` GUI containers inside an isolated `Headless` workspace |
@@ -49,7 +49,9 @@ komactl sandbox run --with-agent-sock --ro-bind ~/repo:/workspace -- code-oss
 
 ## Spatial Overview (`koma-overview`)
 
+![koma-overview spatial workspace switcher](/media/koma-overview.webp)
+
 Toggle `koma-overview` via `Mod + Tab` (or bind `koma.act.overview.toggle()`):
 
 - Attaches via `zwlr_layer_shell_v1` on the active output and queries `koma-admin.sock` `scene.inventory`.
-- Displays all Headed and Headless workspaces (including `agent:work` decks and background Stash counts) in a unified spatial grid with zero idle GPU wakeups (`hover_fsm.rs`).
+- Displays all Headed and Headless workspaces (including `agent:work` decks and background Stash counts) in a unified spatial grid with zero idle GPU wakeups.

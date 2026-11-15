@@ -138,19 +138,48 @@ const t = getUiMessages(locale);
         <div
           class:list={[
             "showcase-grid",
-            { "showcase-grid-two": showcase.length === 2 },
+            {
+              "showcase-grid-two":
+                showcase.length === 2 || showcase.some((s) => s.featured),
+            },
           ]}
         >
           {showcase.map((item) => (
-            <figure class="showcase-card">
-              <img
-                src={item.image}
-                alt={item.title}
-                loading="lazy"
-                decoding="async"
-                width="640"
-                height="360"
-              />
+            <figure
+              class:list={[
+                "showcase-card",
+                { "showcase-card-featured": item.featured },
+              ]}
+            >
+              {item.videoWebm || item.videoMp4 ? (
+                <video
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  preload="metadata"
+                  poster={item.image}
+                  width="1280"
+                  height="800"
+                  aria-label={item.title}
+                >
+                  {item.videoWebm && (
+                    <source src={item.videoWebm} type="video/webm" />
+                  )}
+                  {item.videoMp4 && (
+                    <source src={item.videoMp4} type="video/mp4" />
+                  )}
+                </video>
+              ) : (
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading="lazy"
+                  decoding="async"
+                  width="1280"
+                  height="800"
+                />
+              )}
               <figcaption>
                 <strong>{item.title}</strong>
                 <span>{item.caption}</span>
@@ -360,11 +389,17 @@ const t = getUiMessages(locale);
     overflow: hidden;
     box-shadow: var(--shadow-xs);
   }
-  .showcase-card img {
+  .showcase-card-featured,
+  .showcase-grid-two:has(> :nth-child(2):last-child) > .showcase-card-featured + .showcase-card {
+    grid-column: 1 / -1;
+  }
+
+  .showcase-card img,
+  .showcase-card video {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 10;
     object-fit: cover;
     border-bottom: 1px solid var(--border-hairline);
   }

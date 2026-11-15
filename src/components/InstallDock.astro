@@ -1,8 +1,5 @@
 ---
-import {
-  getInstallChannels,
-  RELEASE_POINTERS,
-} from "../data/installChannels.ts";
+import { getInstallChannels } from "../data/installChannels.ts";
 import {
   getUiMessages,
   type ProductSurface,
@@ -17,7 +14,6 @@ interface Props {
 const { locale, surface } = Astro.props;
 const t = getUiMessages(locale);
 const channels = getInstallChannels(surface);
-const pointerUrl = RELEASE_POINTERS[surface];
 ---
 
 <section
@@ -31,21 +27,12 @@ const pointerUrl = RELEASE_POINTERS[surface];
     <h2 id="install-title">{t.installHeading}</h2>
     <div class="section-meta-links">
       <a
-        href={pointerUrl}
+        href={`https://github.com/komawm/${surface}/releases`}
         target="_blank"
         rel="noopener noreferrer"
         class="meta-pill-link"
       >
         <span>{t.installPointerLabel}</span>
-        <span aria-hidden="true">↗</span>
-      </a>
-      <a
-        href="https://github.com/komawm/packaging"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="meta-pill-link"
-      >
-        <span>{t.installPackagingLabel}</span>
         <span aria-hidden="true">↗</span>
       </a>
     </div>

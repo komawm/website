@@ -1,51 +1,56 @@
-# Lua 沙箱、布局与视觉外观
+# 布局、外观与 init.lua
 
-Koma 通过纯 Rust 编写的无栈 Lua 5.4 运行时 [Phodopus](https://github.com/Xuepoo/phodopus)（`koma-lua`）加载 `~/.config/koma/init.lua`。
+Koma 默认从 `~/.config/koma/init.lua`（或 `$XDG_CONFIG_HOME/koma/init.lua`，回退路径为 `/etc/xdg/koma/init.lua`）加载配置。可通过环境变量 `KOMA_CONFIG` 或启动参数 `koma -c <path>` 指定其他配置文件；较长的配置可拆分到 `~/.config/koma/lua/` 目录中并用 `require(...)` 引入。
 
-![Koma 横向滚动工作区布局预览](/placeholders/koma-scrolling.webp "Scrolling 连续横向滚动列布局与多列焦点预览。")
+![Koma 横向滚动工作区布局与 Lua 配置预览](/media/koma-scrolling.webp "Scrolling 连续横向滚动列布局与状态栏预览。")
 
-## Phodopus 沙箱配额与原子热重载
+## 配置校验与安全热重载
 
-- **确定性资源熔断**：每次求值与回调均受单调指令燃料（Instruction Fuel）与严格堆内存上限（默认 `DEFAULT_HEAP_LIMIT_BYTES = 4 MiB`）约束，且剥离 `io`、`os`、`debug`、`package` 等 OS 库，彻底杜绝配置脚本死循环卡死显示服务器。
-- **影子注册表原子切换**：执行 `komactl reload`、修改配置触发文件监控或按下 `Mod + Shift + R` 时，新配置先在影子沙箱内完整求值并校验所有正则与手势。一旦失败，线上工作区状态保持原样不动。
-- **离线预检**：可在保存后先运行 `komactl validate` 查看识别到的显示器、工作区、快捷键、手势与规则数量。
+- **沙箱隔离**：Lua 5.4 求值环境设有 `4 MiB` 堆内存上限与指令数限制，并移除 `io`、`os`、`debug` 与 `package` 等系统库，避免配置死循环阻塞合成器。
+- **离线预检**：修改 `~/.config/koma/init.lua` 后，先用 `komactl validate` 检查语法、窗口规则正则与手势配置：
+  ```bash
+  komactl validate ~/.config/koma/init.lua
+  ```
+- **原子重载**：保存 `init.lua`（自动监听变更）、执行 `komactl reload` 或按下 `Mod + Shift + R` 时，Koma 会先在隔离环境中完整校验新配置；若出现错误，当前运行中的窗口、工作区和快捷键保持不变。可通过 `komactl config-status` 查看当前生效路径与最近一次重载错误。
 
-## 布局引擎（`koma.layout`、`koma.workspace`、`koma.dwindle`、`koma.scrolling`）
+## 布局与工作区（`koma.layout`、`koma.dwindle`、`koma.scrolling`、`koma.workspace`）
 
-有头工作区默认采用 `"dwindle"`，支持全局或按工作区单独切换 `"dwindle"`、`"scrolling"`、`"deck"` 或 `"bsp"`：
+有头工作区默认使用 `"dwindle"` 布局。你可以在 `~/.config/koma/init.lua` 中全局或按工作区分别指定 `"dwindle"`、`"scrolling"`、`"deck"`（单窗全视口聚焦 + 后台暂存栈）或 `"bsp"`：
 
 ```lua
 koma.layout("dwindle") -- "dwindle" | "scrolling" | "deck" | "bsp"
 
 koma.dwindle({
-    force_split = 0,         -- 0 = 随指针/宽高比自动分割, 1 = 左/上, 2 = 右/下
-    preserve_split = true,
-    smart_split = true,
+    force_split = 0,         -- 0 = 按宽高比自动分割, 1 = 左/上, 2 = 右/下
+    preserve_split = false,
+    smart_split = false,
     default_split_ratio = 1.0,
     inner_gap = 6,
     outer_gap = 10,
 })
 
 koma.scrolling({
-    preset_column_widths = { 0.3333, 0.5, 0.6667 },
+    preset_column_widths = { 1 / 3, 0.5, 2 / 3 },
     default_column_width = { proportion = 0.5 },
     default_column_display = "normal", -- "normal" | "tabbed"
     center_focused_column = "never",   -- "never" | "always" | "on_overflow"
     camera_damping_ratio = 1.0,
-    camera_stiffness = 550.0,
+    camera_stiffness = 800.0,
     inner_gap = 8,
-    outer_gap = 12,
-    edge_auto_scroll = { enabled = true, trigger_width = 48, delay_ms = 120, max_speed = 900 },
+    outer_gap = 10,
+    edge_auto_scroll = { enabled = true, trigger_width = 30, delay_ms = 100, max_speed = 1500 },
 })
 
-koma.workspace({ name = "1", layout = "dwindle", gaps_in = 6, gaps_out = 10 })
+koma.workspace({ name = "1", layout = "dwindle", gaps = { inner = 6, outer = 10 } })
 koma.workspace({ name = "2", layout = "scrolling" })
 koma.workspace({ name = "agent:work", presentation = "headless", layout = "deck" })
 ```
 
-## 视觉外观与弹簧物理（`koma.appearance`）
+`koma.workspace({...})` 还支持 `preferred_output`（如 `"eDP-1"`）以及简写整数参数 `gaps_in`、`gaps_out`。
 
-`koma.appearance({...})` 的全部字段均具备类型化默认值，支持按需增量覆盖：
+## 视觉外观（`koma.appearance`）
+
+`koma.appearance({...})` 中的每个字段都带有默认值，只需覆盖需要调整的部分：
 
 ```lua
 koma.appearance({
@@ -53,19 +58,18 @@ koma.appearance({
     border = {
         enabled = true,
         width = 2.0,
-        active_color = "#7aa2f7",
-        inactive_color = "#3b4261",
-        agent_leased_color = "#9ece6a",  -- 智能体持有 Epoch 租约时的专属边框色
-        human_preempt_color = "#f7768e", -- 按下 Mod + G 人类接管时的提示色
+        active_color = "#58a6ff",
+        inactive_color = "#30363d",
+        agent_leased_color = "#d2a8ff",  -- 智能体持有 Epoch 租约时的边框色
+        human_preempt_color = "#f0883e", -- 按下 Mod + G 人类接管时的提示色
     },
-    focus_ring = { enabled = false, width = 2.0, active_color = "#7dcfff", inactive_color = "#24283b" },
+    focus_ring = { enabled = false, width = 2.0, active_color = "#58a6ff", inactive_color = "#30363d" },
     shadow = {
         enabled = true,
-        range = 18,
+        range = 16,
         render_power = 3,
         sharp = false,
         color = "#00000073",
-        inactive_color = "#00000040",
         offset_x = 0.0,
         offset_y = 4.0,
         scale = 1.0,
@@ -74,28 +78,30 @@ koma.appearance({
     blur = {
         enabled = true,
         size = 6,
-        passes = 2,
-        noise = 0.015,
-        contrast = 1.0,
-        brightness = 1.0,
-        vibrancy = 0.18,
-        xray = false,
+        passes = 3,
+        noise = 0.0117,
+        contrast = 0.8916,
+        brightness = 0.8172,
+        vibrancy = 0.1696,
+        xray = true,
         ignore_opacity = false,
     },
     animations = {
         enabled = true,
-        damping_ratio = 0.9,
-        stiffness = 420.0,
-        epsilon = 0.5,
-        open_scale_from = 0.92,
+        damping_ratio = 1.0,
+        stiffness = 800.0,
+        epsilon = 0.0005,
+        open_scale_from = 0.88,
         close_scale_to = 0.92,
     },
 })
 ```
 
-## 增量键位覆盖、解绑与子模式
+渐变边框、自定义动画曲线与分通道样式见[动画、边框与模糊](/zh-CN/docs/configuration/animations-and-rice/)，编辑器类型补全配置见[编辑器类型补全 (koma-types)](/zh-CN/docs/configuration/lua-types/)。
 
-默认 `inherit_default_binds = true` 会加载完整内置键位表；`koma.bind(...)` 按键位原地覆盖，`koma.unbind(chord)` 可移除指定默认键位：
+## 快捷键、子模式与辅助接口
+
+默认 `inherit_default_binds = true` 会加载内置快捷键表。`koma.bind(...)` 会按组合键原地覆盖，`koma.unbind(chord)` 可移除不需要的默认绑定：
 
 ```lua
 koma.unbind("Mod + Return")
@@ -103,25 +109,25 @@ koma.bind("Mod + Return", koma.act.spawn({ "foot" }), { desc = "Launch foot" })
 koma.bind("Mod + O", koma.act.overview.toggle(), { desc = "Toggle koma-overview" })
 ```
 
-| 辅助 API | 用途说明 |
+| 辅助接口 | 用途 |
 | :--- | :--- |
-| `koma.env(key, val)` | 向 Koma 派生的子进程注入环境变量 |
-| `koma.mode(name, spec)` | 定义可通过 `koma.act.mode` 切换的快捷键子模式 |
-| `koma.on(event, fn)` | 注册受指令配额保护的生命周期事件回调 |
-| `koma.macro.define(spec)` | 定义零 Token 参数化 GUI 宏并动态暴露给 `koma-mcp` |
+| `koma.env(key, val)` | 向 Koma 启动的子进程导出环境变量 |
+| `koma.mode(name, spec)` | 定义子模式，通过 `koma.act.mode.enter(name)` 进入、`koma.act.mode.exit()` 退出 |
+| `koma.on(event, fn)` | 注册生命周期事件回调 |
+| `koma.macro.define(spec)` | 定义参数化 GUI 宏并暴露给 `koma-mcp` |
 
-## 实时桌面快照查询（`MacroContext`）与生命周期钩子（`koma.on`）
+## 动态状态查询与事件钩子（`MacroContext`、`koma.on`）
 
-快捷键回调与 `koma.on` 监听器会收到由 Ring 0 预先捕获的只读 `DesktopQuerySnapshot` 支撑的 `ctx`（`MacroContext`）。受保护窗口的标题会被自动脱敏为 `"[protected]"`，且无头离屏智能体工作区（`Offscreen`）窗口对人类侧快照不可见：
+按键回调函数与 `koma.on` 监听器都会收到只读上下文快照 `ctx`（`MacroContext`）。受保护窗口的 `app_id` 与 `title` 会自动脱敏为 `"[protected]"`，无头工作区中的窗口不会出现在常规桌面查询中：
 
 - `ctx:focused_window()` — 返回当前聚焦窗口信息表（`id`、`app_id`、`title`、`workspace`、`floating`、`fullscreen`、`focused`）或 `nil`。
-- `ctx:windows()` / `ctx:outputs()` / `ctx:workspaces()` — 返回作用域内的窗口、输出显示器与工作区只读列表。
-- `ctx:dispatch(action)` — 提交任意已编译的 `koma.act.*` 动作（如 `koma.act.window.focus(win_id)` 与 `koma.act.workspace.set_layout(mode, workspace?)`；禁止嵌套 Lua 回调）。
+- `ctx:windows()` / `ctx:outputs()` / `ctx:workspaces()` — 返回可见窗口、显示器输出与工作区列表。
+- `ctx:dispatch(action)` — 派发已编译的 `koma.act.*` 动作（例如 `koma.act.window.focus(win_id)` 或 `koma.act.workspace.set_layout(mode, workspace?)`；不允许在 `dispatch` 中嵌套 Lua 回调）。
 
-Ring 0 支持的规范 `koma.on(event_name, function(ctx, event) ... end)` 事件（最大递归深度 `4`）：`"compositor.start"`、`"config.reloaded"`、`"window.mapped"`、`"window.closed"`、`"window.focused"`、`"workspace.focused"` 与 `"output.changed"`。
+`koma.on(event_name, function(ctx, event) ... end)` 支持的事件（最大嵌套深度为 `4`）：`"compositor.start"`、`"config.reloaded"`、`"window.mapped"`、`"window.closed"`、`"window.focused"`、`"workspace.focused"` 与 `"output.changed"`。
 
 ```lua
--- Run-or-Raise：已有 foot 则直接聚焦，否则启动新终端
+-- Run-or-Raise：已有 foot 则聚焦，否则启动新终端
 koma.bind("Mod + Shift + T", function(ctx)
     for _, win in ipairs(ctx:windows()) do
         if win.app_id == "foot" then
@@ -132,7 +138,7 @@ koma.bind("Mod + Shift + T", function(ctx)
     ctx:dispatch(koma.act.spawn({ "foot" }))
 end, { desc = "Focus foot or launch it" })
 
--- 检测到超宽带鱼屏接入或变更时自动切换为 scrolling 横向布局
+-- 检测到超宽显示器时自动切换到 scrolling 布局
 koma.on("output.changed", function(ctx, ev)
     if ev.width and ev.width >= 3440 then
         ctx:dispatch(koma.act.workspace.set_layout("scrolling"))

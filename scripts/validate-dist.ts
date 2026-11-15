@@ -92,11 +92,36 @@ if (/unsafe-inline|unsafe-eval/iu.test(headersText)) {
 }
 if (
   !headersText.includes("style-src 'self'") ||
-  !headersText.includes("script-src 'self'")
+  !headersText.includes("script-src 'self'") ||
+  !headersText.includes("upgrade-insecure-requests")
 ) {
   throw new Error(
-    "_headers CSP must enforce strict style-src 'self' and script-src 'self'",
+    "_headers CSP must enforce strict style-src 'self', script-src 'self', and upgrade-insecure-requests",
   );
+}
+if (!headersText.includes("Strict-Transport-Security: max-age=31536000")) {
+  throw new Error("_headers must enforce Strict-Transport-Security HSTS policy");
+}
+
+for (const media of [
+  "media/koma-dwindle.webp",
+  "media/koma-scrolling.webp",
+  "media/koma-overview.webp",
+  "media/koma-tiling.webm",
+  "media/koma-tiling.mp4",
+  "media/jiku-paint.webp",
+  "media/jiku-terminal.webp",
+  "media/jiku-paint.webm",
+  "media/jiku-paint.mp4",
+]) {
+  await access(join(DIST, media));
+}
+
+try {
+  await access(join(DIST, "placeholders"));
+  throw new Error("Deprecated dist/placeholders directory must not exist");
+} catch (err) {
+  if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") throw err;
 }
 
 const shikiCss = await readFile(join(DIST, "shiki-tokens.css"), "utf8");
@@ -185,6 +210,9 @@ async function auditAllHtml(dir: string): Promise<void> {
     }
     if (/\sstyle\s*=/iu.test(html)) {
       throw new Error(`${full}: found prohibited inline style= attribute`);
+    }
+    if (html.includes("/placeholders/")) {
+      throw new Error(`${full}: references removed /placeholders/ asset`);
     }
     for (const match of html.matchAll(/\b(shk-[0-9a-f]{8})\b/gu)) {
       const cls = match[1] ?? "";

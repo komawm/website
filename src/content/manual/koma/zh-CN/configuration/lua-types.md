@@ -1,23 +1,27 @@
-# LuaLS 类型补全接入 (koma-types)
+# 编辑器类型补全 (koma-types)
 
-`~/.config/koma/init.lua` 的完整 LuaCATS 类型定义与悬停提示文档托管在独立的 `Apache-2.0` 仓库 [komawm/koma-types](https://github.com/komawm/koma-types) 中，并与 `komactl gen-types`（`koma-lua/src/typegen.rs`）保持逐字节确定性一致。
+`~/.config/koma/init.lua` 的 LuaLS 自动补全、悬停提示与字段诊断由 `komactl gen-types` 和 `Apache-2.0` 开源仓库 [komawm/koma-types](https://github.com/komawm/koma-types) 提供。
+
+![在 Dwindle 平铺布局中配合 komactl 编辑 ~/.config/koma/init.lua](/media/koma-dwindle.webp "Dwindle 布局下编辑 ~/.config/koma/init.lua 与使用 komactl 的示例。")
 
 ## 生成或克隆 `types/koma.lua`
 
-你可以直接由本地 `komactl` 导出，也可以克隆官方版本快照仓库：
+建议直接由本机已安装的 `komactl` 导出（保证类型定义与当前版本完全一致），也可以克隆版本快照仓库：
 
 ```bash
-# 方式 A：由已安装的 komactl 直接导出
+# 方式 A：由已安装的 komactl 直接生成
 mkdir -p ~/.config/koma/types
 komactl gen-types > ~/.config/koma/types/koma.lua
 
-# 方式 B：克隆版本化类型快照仓库
+# 方式 B：克隆类型仓库
 git clone --depth 1 https://github.com/komawm/koma-types.git ~/.local/share/koma-types
 ```
 
+升级 Koma 后重新执行 `komactl gen-types > ~/.config/koma/types/koma.lua`，即可同步最新字段与动作定义。
+
 ## 编辑器配置（`.luarc.json`）
 
-在 `~/.config/koma/.luarc.json` 中声明 `Lua 5.4` 运行时与类型库目录即可启用全量智能补全：
+在 `~/.config/koma/.luarc.json` 中声明 `Lua 5.4` 运行时与类型库目录：
 
 ```json
 {
@@ -31,12 +35,12 @@ git clone --depth 1 https://github.com/komawm/koma-types.git ~/.local/share/koma
 }
 ```
 
+若使用方式 B 克隆仓库，请将 `"workspace.library"` 设为 `["~/.local/share/koma-types/types"]`（或将其软链接到 `~/.config/koma/types`）。
+
 ### 常见编辑器接入
 
-- **Neovim（`nvim-lspconfig` / `lazydev.nvim`）**：在 `~/.config/koma/` 打开 `init.lua` 时 `lua_ls` 会自动加载 `.luarc.json`，也可将 `~/.local/share/koma-types/types` 加入 `lazydev.nvim` 库路径。
-- **Helix（`languages.toml`）**：打开 `.lua` 文件后 `lua-language-server` 会自动读取工作区根目录的 `.luarc.json`。
-- **Zed / VS Code（`sumneko.lua`）**：以文件夹形式打开 `~/.config/koma`，即可立即获得 `koma.layout`、`koma.monitor`、`koma.input`、`koma.appearance`、`koma.rule.*`、`koma.macro.*` 与 `koma.act.*` 的完整提示。
+- **Neovim（`nvim-lspconfig` / `lazydev.nvim`）**：在 `~/.config/koma/` 打开 `init.lua` 时 `lua_ls` 会自动加载 `.luarc.json`，也可将 `~/.local/share/koma-types/types` 加入 `lazydev.nvim` 的 `library` 路径。
+- **Helix**：打开 `.lua` 文件时 `lua-language-server` 会自动读取配置根目录下的 `.luarc.json`。
+- **Zed / VS Code（`sumneko.lua`）**：以文件夹形式打开 `~/.config/koma`，即可获得 `koma.layout`、`koma.monitor`、`koma.input`、`koma.appearance`、`koma.rule.*`、`koma.macro.*` 与 `koma.act.*` 的完整补全提示。
 
-## 确定性校验保障
-
-[komawm/koma-types](https://github.com/komawm/koma-types) 在每次 CI 中都会验证 `types/koma.lua` 可通过 `Lua 5.4` `luac -p` 语法校验，且与 `komactl gen-types` 输出逐字节匹配（`artifact.toml` 标记 `generator_reproduced = true`）。
+[komawm/koma-types](https://github.com/komawm/koma-types) 发布的存根文件均经过 Lua 5.4（`luac -p`）语法检查，并与 `komactl gen-types` 输出保持一致。

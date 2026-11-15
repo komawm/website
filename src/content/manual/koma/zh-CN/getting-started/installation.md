@@ -1,30 +1,30 @@
-# 多发行版安装与渠道
+# 安装指南
 
 > [!WARNING]
-> **当前版本边界（`v0.0.1` 孵化基线）**：Koma 当前处于 `v0.0.1` 孵化阶段。全部 9 个 Rust crate 均已在 **Rust `1.100.0`（Edition 2024）** 下通过单元测试、Arch Linux QEMU/KVM 软件 KMS 冒烟验证（`koma --tty`）以及 FreeBSD `15.1-RELEASE` 编译检查；物理 GPU 裸机 DRM/KMS 扫描输出与安全验收仍属于 `v0.1.0` 里程碑目标，请务必保留可用的 TTY 或原有桌面会话作为回退。
+> **孵化阶段基线（`v0.0.1`）**：Koma 当前处于 `v0.0.1` 孵化阶段。单元测试、Arch Linux QEMU/KVM 软件 KMS 冒烟检查（`koma --tty`）以及 FreeBSD `15.1-RELEASE` 编译与测试检查已通过；物理 GPU 裸机 DRM/KMS 扫描输出与完整安全验收仍属于 `v0.1.0` 目标，请务必保留可用的备用 TTY 或原有桌面会话。
 
 > [!NOTE]
-> Koma 是完全独立的 Wayland 合成器，无需安装 [Jiku](/zh-CN/jiku/) 即可独立使用全部窗口管理功能。
+> Koma 是完全独立的 Wayland 合成器，无需安装 [Jiku](/zh-CN/jiku/) 即可使用全部窗口管理功能。
 
-## 分发渠道与打包矩阵
+## 分发渠道概览
 
-多发行版打包定义维护在 [komawm/packaging](https://github.com/komawm/packaging)，产物通过 GitHub Releases 与 Cloudflare R2 CDN（`https://cdn.komawm.org`）分发：
+多发行版打包定义维护在 [komawm/packaging](https://github.com/komawm/packaging)，发布包通过 GitHub Releases 与官方软件包仓库分发：
 
 | 平台 / 渠道 | 产物形态 | 当前状态与说明 |
 | :--- | :--- | :--- |
-| **Debian / Ubuntu** | 签名 `deb822` APT 源（`https://cdn.komawm.org/apt`）+ `koma_<ver>-1_<arch>.deb`（`amd64`, `arm64`） | nFPM `.deb` + `SHA256SUMS` |
+| **Debian / Ubuntu** | 签名 `deb822` APT 仓库 + `koma_<ver>-1_<arch>.deb`（`amd64`, `arm64`） | `.deb` + `SHA256SUMS` |
 | **Arch Linux** | `PKGBUILD`（`koma` / `koma-bin`）+ `.pkg.tar.zst`（`x86_64`, `aarch64`） | QEMU/KVM Arch `10/10` 冒烟通过 |
-| **Fedora / RHEL / openEuler** | Copr / nFPM `.rpm`（`x86_64`, `aarch64`） | Spec + nFPM 流水线 |
-| **Alpine Linux** | `APKBUILD` / nFPM `.apk`（`x86_64`, `aarch64`） | musl 构建模板 |
+| **Fedora / RHEL / openEuler** | Copr / `.rpm`（`x86_64`, `aarch64`） | RPM 打包 |
+| **Alpine Linux** | `APKBUILD` / `.apk`（`x86_64`, `aarch64`） | musl 目标打包 |
 | **NixOS / Nix** | 委托 `komawm/koma` `flake.nix` + Cachix（`x86_64-linux`, `aarch64-linux`） | Nix 模块模板 |
 | **FreeBSD `15+`** | Ports `Makefile` + `pkg` 清单（`amd64`, `aarch64`） | FreeBSD `15.1-RELEASE` 虚拟机验证通过 |
 | **OpenBSD `8+`** | Ports `Makefile`（`amd64`, `aarch64`） | 实验性模板 |
 | **Homebrew (Linuxbrew)** | Formula `koma.rb`（`x86_64`, `aarch64`） | Linux 二进制配方 |
 | **通用 Linux 压缩包** | `koma-<ver>-x86_64-unknown-linux-gnu.tar.gz` + `SHA256SUMS` | 自包含发布归档 |
 
-## Debian / Ubuntu（签名 `deb822` APT 渠道）
+## Debian / Ubuntu（签名 `deb822` APT）
 
-通过 `https://cdn.komawm.org/apt` 安装 GPG 密钥环与 `deb822` 源配置：
+安装仓库签名密钥与 `deb822` 源配置：
 
 ```bash
 curl -fsSL https://cdn.komawm.org/apt/setup.sh | sudo sh
@@ -32,29 +32,38 @@ sudo apt update
 sudo apt install koma
 ```
 
-也可以手动写入 `/etc/apt/sources.list.d/komawm.sources`（指定 `Signed-By: /usr/share/keyrings/komawm-archive-keyring.gpg`），或从 `https://cdn.komawm.org/releases/` 与 GitHub Releases 下载并校验 `SHA256SUMS` 后直接安装 `.deb`。
+也可以手动配置 `/etc/apt/sources.list.d/komawm.sources`（将 `Signed-By` 指向 `/usr/share/keyrings/komawm-archive-keyring.gpg`），或从 GitHub Releases 下载并校验 `SHA256SUMS` 后直接安装 `.deb` 包。
 
 ## Arch Linux
 
-使用校验后的 `.pkg.tar.zst` 离线包或 `PKGBUILD` 安装：
+安装多架构预构建 AUR 包 `koma-bin`（无需本地编译），或通过 `koma` 从源码构建，也可直接用 `pacman -U` 安装 `.pkg.tar.zst`：
 
 ```bash
-sha256sum -c SHA256SUMS-archlinux
+# 安装预构建二进制包（支持 x86_64 与 aarch64）
+paru -S koma-bin
+
+# 或从源码 PKGBUILD 构建 / 安装已校验的离线包
+paru -S koma
 sudo pacman -U koma-0.0.1-1-x86_64.pkg.tar.zst
 ```
 
 `pacman` 会自动解析 `seatd`（或 `systemd-libs`）、`libinput`、`mesa`、`libdisplay-info`、`libxkbcommon`、`wayland`、`pixman` 与 `libglvnd` 等运行时依赖。
 
-## Fedora / RHEL、Alpine、NixOS 与 BSD
+## Fedora / RHEL、Alpine、Homebrew、NixOS 与 BSD
 
-- **Fedora / RHEL**：安装 nFPM 或 Copr 构建的 `.rpm`（`sudo dnf install ./koma-*.rpm`）。
-- **Alpine Linux**：校验 `SHA256SUMS` 后安装 `.apk`（`sudo apk add --allow-untrusted ./koma-*.apk`），并启用 `seatd` 或 `elogind`。
-- **FreeBSD `15.1-RELEASE`**：需要 `seatd`、`libinput`、`libudev-devd`、`mesa-libs`、`libdisplay-info`、`libxkbcommon`、`wayland` 等包提供无特权 VT 座席访问。
+- **Fedora / RHEL**：安装 `.rpm` 包（`sudo dnf install ./koma-*.rpm`）。
+- **Alpine Linux**：校验 `sha256sum` 后安装 `.apk`（`sudo apk add --allow-untrusted ./koma-*.apk`），并启用 `seatd` 或 `elogind`。
+- **Homebrew on Linux（Linuxbrew）**：安装预构建 Linux 二进制配方：
+  ```bash
+  curl -fsSLO https://cdn.komawm.org/install/koma/koma.rb
+  brew install --formula ./koma.rb
+  ```
+- **FreeBSD `15.1-RELEASE`**：需要 `seatd`、`libinput`、`libudev-devd`、`mesa-libs`、`libdisplay-info`、`libxkbcommon`、`wayland`，以及 `basu` / `consolekit2` 以支持无特权 VT 座席访问。
 - **OpenBSD `8+`**：打包模板位于 `komawm/packaging/openbsd/`（目前仍为实验性模板，待运行时验证）。
 
 ## 从源码构建
 
-从 [komawm/koma](https://github.com/komawm/koma) 编译需要仓库锁定的 **Rust `1.100.0`** 工具链（`rust-toolchain.toml`）及 Wayland/DRM 系统开发库（`libseat`、`libinput`、`libudev`、`libgbm`、`libxkbcommon`、`libdisplay-info`、`mesa`、`pixman` 等）：
+从 [komawm/koma](https://github.com/komawm/koma) 构建需要 `cargo` 工具链与 Wayland/DRM 开发头文件（`libseat`、`libinput`、`libudev`、`libgbm`、`libxkbcommon`、`libdisplay-info`、`mesa`、`pixman`，以及按需安装的 `pango`/`cairo`）：
 
 ```bash
 git clone https://github.com/komawm/koma.git
@@ -68,13 +77,13 @@ cargo build --release --locked -p koma -p komactl -p koma-mcp -p koma-overview
 
 ## 登录会话集成（`greetd` 与 `systemd --user`）
 
-安装包会附带 `koma-session`、`koma.desktop`、`koma.portal`（`xdg-desktop-portal` 路由）以及 systemd 用户单元。在备用 TTY 或 `greetd` 中试运行：
+发行版安装包附带 `koma-session`、`koma.desktop`、`koma.portal`（`xdg-desktop-portal` 配置）以及 systemd 用户单元模板。在不改动现有配置的前提下通过 `greetd` 试运行：
 
 ```toml
-# /etc/greetd/config.toml 示例
+# /etc/greetd/config.toml（备用 VT 示例）
 [default_session]
 command = "agreety --cmd 'koma --session'"
 user = "greeter"
 ```
 
-在替换默认登录管理器前，建议先通过 `koma --winit` 嵌套运行或在独立 VT 执行 `koma --tty --spawn foot` 进行确认。
+在替换默认登录环境前，建议先通过 `koma --winit` 嵌套运行或在备用 TTY 执行 `koma --tty --spawn foot` 进行确认。

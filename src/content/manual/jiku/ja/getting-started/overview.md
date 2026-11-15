@@ -1,37 +1,33 @@
-# Three-Driver オーケストレーション設計
+# Jiku 概要
 
 > [!NOTE]
-> **Jiku**（`jikud` および `jiku`）は [komawm/jiku](https://github.com/komawm/jiku) で提供される任意の独立デスクトップ自動化デーモンです。Jiku を導入しなくても、[Koma](/ja/) コンポジタ単体で完全に動作します。
+> **Jiku**（`jikud` および `jiku`）は [komawm/jiku](https://github.com/komawm/jiku) で提供される任意の独立デスクトップ自動化デーモンおよび CLI です。Jiku を導入しなくても、[Koma](/ja/) コンポジタは AI 依存なしで単独動作します。
 
-![藍染楮和紙に描かれた Jiku 15x15 組子格子と音響波紋](/placeholders/jiku-grid.webp "15×15 空間決定グリッド (gemini-decision-1) と AvatarCue 音響波紋。")
+![Koma 上のペイントウィンドウを検査・自動操作する Jiku](/media/jiku-paint.webp "スクリーンショット取得とグリッド座標指定を用いて Koma 上のペイントウィンドウを操作する Jiku。")
 
-## コア設計：3 つの専門モデルドライバ
+## Jiku が行うこと
 
-Jiku は高速な閉集合視覚判定、段階的タスク計画、任意のリアルタイム音声対話を 3 つの疎結合ドライバへ分離しています。
+Jiku は高速な画面チェック、多段階タスク計画、任意の音声出力をユーザー空間デーモン（`jikud`）と CLI（`jiku`）にまとめています。
 
-| ドライバ | 役割 | 既定エンドポイント・契約 |
+- **バックグラウンドデーモン（`jikud`）**: `$XDG_RUNTIME_DIR/jiku.sock` で待機し、Koma からスクリーンショット取得を行い、設定済みモデルによる判定や計画を実行し、Lua ポリシーを適用したうえで Koma へ仮想キーボード・ポインタ入力を送ります。
+- **CLI・MCP サーバー（`jiku`）**: デーモン状態確認、設定と Lua ポリシー検証、単発判定やタスク実行、`~/JikuBox` ディレクトリの分類、ローカル全文履歴の検索、スキル承認管理、外部コーディングエージェント向け stdio MCP ツール提供を行います。
+- **ローカル状態と履歴（`~/.local/state/jiku/state.db`）**: 変化のないフレームの重複排除、アプリ固有の操作手順キャッシュ、ローカル全文履歴、承認待ちスキル草案を保存します。
+- **通知と任意音声合成（`[notify]` / `[tts]`）**: 既定で D-Bus 経由のデスクトップ通知を送信します。音声合成（`VOICEVOX`、`OpenAI` speech、`noop`）は既定で無効です。
+
+## モデルの役割分担
+
+| 役割 | 用途 | 既定モデルとフォールバック |
 | :--- | :--- | :--- |
-| **`DecisionsDriver`** | ミリ秒単位の UI 判定、`grid_225` 座標特定、安全ゲート、`~/JikuBox` 分類 | `gemini-decision-1`（`POST /v1beta/decisions`、`total_output_tokens == 0`、`EmulatedStructuredTextModel` JSON Schema へ自動フォールバック） |
-| **`TurnModelDriver`** | 多段階プランニング、低信頼時（`< 0.85`）の System-2 介入、スキル合成 | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash`（`thinking = false`）、OpenAI / Google AI Studio / Anthropic 互換 |
-| **`LiveSessionDriver`** | 任意の全二重音声および `AvatarCue` セッション転送 | Gemini `BidiGenerateContent` WebSocket（既定無効、PipeWire 実音声 I/O は `v0.1.0` 目標） |
+| **判定プロンプト（`[roles.decision_router]`）** | 高速な UI 状態確認、`grid_225` 座標指定、安全確認、`~/JikuBox` 分類 | `gemini-decision-1`（`GEMINI_API_KEY`）。Gemini キー未設定時は主プランナーモデルの構造化 JSON 出力へ自動フォールバック |
+| **プランナーモデル（`[roles.planner]`）** | 多段階タスク計画、判定信頼度 `< 0.85` 時のエスカレーション、スキル草案作成 | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash`（`thinking = false`）。OpenAI 互換・Google AI Studio・Anthropic エンドポイントも利用可能 |
+| **ライブ音声セッション（任意）** | 実験的な全二重音声トランスポート | Gemini `BidiGenerateContent` WebSocket（既定無効、PipeWire 実音声 I/O は `v0.1.0` 予定） |
 
-## ワークスペース・クレート構成（`#![forbid(unsafe_code)]`）
+## Observe → Decide → Plan → Act ループ
 
-Jiku の全 4 クレート（`jikud`、`jiku`、`jiku-memory`、`jiku-tts`）は `#![forbid(unsafe_code)]` を強制し、生 FFI や `mmap` を一切持ちません。
-
-| クレート | 種別 | 責務 |
-| :--- | :--- | :--- |
-| `jikud` | ライブラリ＋バイナリ | `$XDG_RUNTIME_DIR/jiku.sock` RPC デーモン、3 ドライバ、`DecisionCompiler`、Phodopus Lua ポリシー、`KomaIpcClient`（安全な `File::from(fd)` による `memfd` 読取） |
-| `jiku` | バイナリ | CLI コントローラおよび MCP サーバ（`status`、`validate-config`、`decide`、`plan`、`run`、`box classify`、`memory search`、`skills`、`mcp`） |
-| `jiku-memory` | ライブラリ | L0 知覚 `dHash` リング、L1 アプリ特性、L2 SQLite WAL + FTS5 BM25、`staged_skills` 承認ストア |
-| `jiku-tts` | ライブラリ | 任意の `TtsProvider`（`VOICEVOX`、`OpenAI` speech、`noop`）と `AvatarCue` パケット |
-
-## Observe → Decide → Plan → Koma Action ループ
-
-1. **Observe**：スコープ限定 `CapabilityToken` で `koma-agent.sock` に接続し、`capture.frame`（保護サーフェスは黒塗り済み）と現在 `Epoch` を取得します。
-2. **Decide**：`DecisionsDriver` が 15 項目の二値 `Noul` 安全チェックと `Choice`（`NONE_OR_OTHER` 必須）および `15×15` `grid_225` セル確率を評価します。
-3. **Plan**：信頼度 `< 0.85` または自由入力が必要な場合、`[roles.planner]`（`deepseek-v4.1-flash` 等）へエスカレーションします。
-4. **Act**：`expected_epoch` 付きで `vseat.*` / `macro.exec` を送信し、`4090` / `4091` / `4032` 受信時は即座に停止または再観測します。
+1. **Observe**: `jikud` はスコープ限定の `CapabilityToken` で `koma-agent.sock` に接続し、`capture.frame` で読み取り専用スクリーンショット取得（`block_out_from` 指定ウィンドウはコンポジタ側でマスク済み）と現在 `Epoch` を受け取ります。
+2. **Decide**: 15 項目の安全チェックリスト、閉集合選択（`NONE_OR_OTHER` フォールバック付き）、`15×15` `grid_225` 座標を評価します。
+3. **Plan**: 信頼度 `< 0.85` の曖昧な状態や自由形式の指示は `[roles.planner]` へ渡し、実行手順や再利用可能なスキルを生成します。
+4. **Act**: `expected_epoch` 付きで `vseat.click`、`vseat.key`、`vseat.inject_text`、`macro.exec` を送信し、`4090 ERR_STALE_EPOCH`、`4091 ERR_HUMAN_PREEMPTED`、`4032 ERR_PROTECTED_SURFACE` 発生時は即座に停止します。
 
 ## CLI クイックツアー
 

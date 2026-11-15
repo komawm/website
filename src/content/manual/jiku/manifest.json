@@ -20,27 +20,27 @@
           "slug": "overview",
           "path": "getting-started/overview.md",
           "title": {
-            "en": "Three-Driver Architecture",
-            "zh-CN": "Three-Driver 三驱动编排架构",
-            "ja": "Three-Driver オーケストレーション設計"
+            "en": "Overview",
+            "zh-CN": "概览",
+            "ja": "概要"
           }
         },
         {
           "slug": "installation-and-quickstart",
           "path": "getting-started/installation-and-quickstart.md",
           "title": {
-            "en": "Installation, API Keys & First Run",
-            "zh-CN": "安装、密钥配置与首次运行",
-            "ja": "インストール・API キー設定・初回起動"
+            "en": "Installation & First Run",
+            "zh-CN": "安装与首次运行",
+            "ja": "インストールと初回起動"
           }
         },
         {
           "slug": "configuration",
           "path": "getting-started/configuration.md",
           "title": {
-            "en": "Daemon Config, DecisionCompiler & TTS",
-            "zh-CN": "守护进程配置、DecisionCompiler 与语音",
-            "ja": "デーモン設定・DecisionCompiler・TTS"
+            "en": "Configuration",
+            "zh-CN": "配置文件与策略",
+            "ja": "設定とポリシー"
           }
         }
       ]
@@ -50,25 +50,25 @@
       "title": {
         "en": "Memory & MCP",
         "zh-CN": "记忆系统与 MCP",
-        "ja": "メモリ階層と MCP"
+        "ja": "メモリと MCP"
       },
       "items": [
         {
           "slug": "memory-tiers",
           "path": "memory-and-mcp/memory-tiers.md",
           "title": {
-            "en": "L0–L2 Memory Tiers & Staged Skills",
-            "zh-CN": "L0–L2 三层记忆与技能审批门禁",
-            "ja": "L0–L2 記憶階層とスキル承認ゲート"
+            "en": "Memory & Skills",
+            "zh-CN": "记忆检索与技能",
+            "ja": "メモリとスキル管理"
           }
         },
         {
           "slug": "cli-mcp-and-jikubox",
           "path": "memory-and-mcp/cli-mcp-and-jikubox.md",
           "title": {
-            "en": "jiku CLI, MCP Server & JikuBox",
-            "zh-CN": "jiku 命令行、MCP 服务与 JikuBox",
-            "ja": "jiku CLI・MCP サーバー・JikuBox"
+            "en": "CLI, MCP & JikuBox",
+            "zh-CN": "命令行、MCP 与 JikuBox",
+            "ja": "CLI・MCP・JikuBox"
           }
         }
       ]
@@ -76,18 +76,18 @@
     {
       "id": "roadmap-and-safety",
       "title": {
-        "en": "Security & Roadmap",
-        "zh-CN": "安全边界与路线图",
-        "ja": "セキュリティとロードマップ"
+        "en": "Permissions & Roadmap",
+        "zh-CN": "权限与计划",
+        "ja": "権限とロードマップ"
       },
       "items": [
         {
           "slug": "security-and-roadmap",
           "path": "roadmap-and-safety/security-and-roadmap.md",
           "title": {
-            "en": "Zero-Unsafe Safety & v0.1.0 Roadmap",
-            "zh-CN": "零 Unsafe 安全边界与 v0.1.0 路线图",
-            "ja": "ゼロ Unsafe 安全境界と v0.1.0 ロードマップ"
+            "en": "Permissions & Roadmap",
+            "zh-CN": "权限控制与后续计划",
+            "ja": "権限管理と今後の予定"
           }
         }
       ]

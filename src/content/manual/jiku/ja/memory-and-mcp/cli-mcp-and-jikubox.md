@@ -1,17 +1,17 @@
-# jiku CLI・MCP サーバー・JikuBox
+# CLI・MCP・JikuBox
 
-`jiku` は、ワークスペース検査、ポリシー検証、スキル承認のためのスクリプト可能な CLI と stdio ベースの Model Context Protocol（MCP）サーバーを提供します。
+`jiku` は、スクリプト実行や診断向けの CLI と、外部コーディングエージェント向けの stdio Model Context Protocol（MCP）サーバーを提供します。
 
-## CLI コマンド一覧
+## CLI コマンドとグローバルフラグ
 
-すべてのサブコマンドで以下のグローバルフラグを利用できます。
+すべてのサブコマンドの前で次のグローバルフラグを指定できます。
 
-- `--config <PATH>` — 設定ファイルのパスを指定します。
-- `--policy <PATH>` — セキュリティポリシーファイルのパスを指定します。
-- `--socket <PATH>` — Koma IPC ソケットパスを指定します。
-- `--json` — 人間向け表示の代わりに JSON を出力します。
+- `--config <PATH>` — 設定ファイルのパスを上書きします。
+- `--policy <PATH>` — Lua ポリシーファイルのパスを上書きします。
+- `--socket <PATH>` — Koma IPC ソケットのパスを上書きします。
+- `--json` — 人間向け表示の代わりに機械可読な JSON を出力します。
 
-現在のリポジトリで実装されている `jiku` サブコマンドは以下の通りです。
+利用可能な `jiku` サブコマンド:
 
 ```bash
 jiku status
@@ -27,37 +27,37 @@ jiku skills stage <PATH>
 jiku skills approve <NAME>
 ```
 
-グラフィカルセッションを起動せずに設定検証だけを行うこともできます。
+グラフィカルセッションを起動せずにデーモン設定をオフライン検証できます。
 
 ```bash
 jikud --headless-check
 ```
 
-## MCP サーバー
+## MCP サーバー（`jiku mcp`）
 
-標準入出力経由で MCP サーバーを起動するか、公開ツール一覧を確認します。
+外部エージェントホストやエディタ連携向けに標準入出力で `jiku mcp` を起動します。
 
 ```bash
 jiku mcp --print-tools
 jiku mcp --stateless
 ```
 
-公開されている 7 つのツールは以下の通りです。
+公開される 7 つのツール:
 
 | ツール名 | 用途 |
-| --- | --- |
+| :--- | :--- |
 | `jiku_status` | デーモン・ソケット・ランタイム状態を取得します。 |
 | `jiku_run_task` | Jiku 実行パイプラインへタスクを投入します。 |
-| `jiku_decide` | 入力から構造化アクション決定を生成します。 |
-| `jiku_plan` | 実行前にマルチステップ計画を作成します。 |
-| `jiku_box_classify` | JikuBox によりプロジェクトディレクトリ構造を分類します。 |
-| `jiku_memory_search` | ローカル階層メモリを検索します。 |
+| `jiku_decide` | 入力から構造化判定プロンプトを実行します。 |
+| `jiku_plan` | 実行前に多段階の計画を生成します。 |
+| `jiku_box_classify` | JikuBox のルールでディレクトリを分類します。 |
+| `jiku_memory_search` | ローカル全文履歴とメモリ階層を検索します。 |
 | `jiku_skills_list` | 導入済み・ステージ済みスキル一覧を取得します。 |
 
-## JikuBox とスキル承認ゲート
+## JikuBox とスキル承認フロー
 
-`jiku box classify` は、計画生成前に対象ディレクトリ（既定はカレントディレクトリ）のプロジェクト構成を判別します。
+`jiku box classify [<DIR>]` は対象ディレクトリ（既定はカレントディレクトリ、主に `~/JikuBox`）を検査し、計画前にファイル整理やプロジェクト情報の要約を行います。
 
-スキルの更新は明示的なレビュー手順に従います。`jiku skills list` で一覧を確認し、`jiku skills diff` で差分を精査し、`jiku skills stage` でステージしたうえで `jiku skills approve` により承認します。
+スキルの更新は明示的なレビュー手順を経ます。`jiku skills list` で一覧を確認し、`jiku skills diff` で差分を確認し、`jiku skills stage <PATH>` でローカル変更をステージしたうえで `jiku skills approve <NAME>` で有効化します。
 
-実装の詳細は [komawm/jiku リポジトリ](https://github.com/komawm/jiku) を参照してください。
+ソースコードは [komawm/jiku リポジトリ](https://github.com/komawm/jiku) にあります。

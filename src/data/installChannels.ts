@@ -37,10 +37,10 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     arch: "x86_64 · aarch64",
     summary: {
-      en: "Prebuilt R2-backed binary package (`koma-bin`) or source PKGBUILD (`koma`) for x86_64 and Arch ARM.",
+      en: "Prebuilt binary package (`koma-bin`) or source PKGBUILD (`koma`) for x86_64 and Arch ARM.",
       "zh-CN":
-        "基于 R2 CDN 的预构建二进制包（`koma-bin`）或源码 PKGBUILD（`koma`），支持 x86_64 与 Arch ARM。",
-      ja: "R2 CDN 配信のバイナリ版（`koma-bin`）またはソースビルド版（`koma`）を AUR で提供します。",
+        "提供预构建二进制包（`koma-bin`）或源码 PKGBUILD（`koma`），支持 x86_64 与 Arch ARM。",
+      ja: "ビルド済みバイナリ版（`koma-bin`）またはソースビルド版（`koma`）を AUR で提供します。",
     },
     commands: [
       {
@@ -113,10 +113,10 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     arch: "x86_64 · aarch64",
     summary: {
-      en: "Copr repository and nFPM `.rpm` release packages covering Fedora Workstation and Fedora Asahi Remix.",
+      en: "Copr repository and `.rpm` release packages covering Fedora Workstation and Fedora Asahi Remix.",
       "zh-CN":
-        "提供 Copr 仓库与 nFPM `.rpm` 安装包，覆盖 Fedora Workstation 与 Apple Silicon Asahi Remix。",
-      ja: "Fedora Workstation および Asahi Remix 向けの Copr / nFPM `.rpm` パッケージを提供します。",
+        "提供 Copr 仓库与 `.rpm` 安装包，覆盖 Fedora Workstation 与 Apple Silicon Asahi Remix。",
+      ja: "Fedora Workstation および Asahi Remix 向けの Copr / `.rpm` パッケージを提供します。",
     },
     commands: [
       {
@@ -129,9 +129,9 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
       },
       {
         label: {
-          en: "Direct RPM from R2 CDN",
-          "zh-CN": "从 R2 CDN 直接安装 RPM",
-          ja: "R2 CDN から直接 RPM を導入",
+          en: "Direct RPM Package",
+          "zh-CN": "直接安装 RPM 包",
+          ja: "RPM パッケージを直接導入",
         },
         code: 'TAG=$(curl -fsSL https://cdn.komawm.org/install/koma/latest.txt)\nsudo dnf install -y "https://cdn.komawm.org/releases/koma/$TAG/koma-${TAG#v}-1.x86_64.rpm"',
       },
@@ -151,9 +151,9 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     arch: "x86_64 · aarch64",
     summary: {
-      en: "Native musl `.apk` packages published to R2 CDN alongside each release tag.",
-      "zh-CN": "随版本发布至 R2 CDN 的原生 musl `.apk` 软件包。",
-      ja: "各リリースに合わせて R2 CDN へ公開されるネイティブ musl `.apk` パッケージです。",
+      en: "Native musl `.apk` packages published alongside each release tag.",
+      "zh-CN": "随版本发布的原生 musl `.apk` 软件包。",
+      ja: "各リリースに合わせて公開されるネイティブ musl `.apk` パッケージです。",
     },
     commands: [
       {
@@ -274,15 +274,15 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
       ja: "Cargo ソース",
     },
     name: {
-      en: "Build from Source (Rust 1.100.0)",
-      "zh-CN": "从源码编译（Rust 1.100.0）",
-      ja: "ソースからビルド（Rust 1.100.0）",
+      en: "Build from Source",
+      "zh-CN": "从源码编译",
+      ja: "ソースからビルド",
     },
-    arch: "Rust 1.100.0 · 2024",
+    arch: "Cargo · Workspace",
     summary: {
-      en: "Compile the Koma workspace directly with the pinned Rust 1.100.0 toolchain.",
-      "zh-CN": "使用仓库固定的 Rust 1.100.0 工具链直接编译安装 Koma。",
-      ja: "固定された Rust 1.100.0 ツールチェーンで Koma をソースからビルドします。",
+      en: "Compile Koma directly with Cargo using the repository toolchain.",
+      "zh-CN": "使用仓库指定的工具链直接从源码编译安装 Koma。",
+      ja: "リポジトリ指定のツールチェーンで Koma をソースからビルドします。",
     },
     commands: [
       {
@@ -303,7 +303,7 @@ export const JIKU_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     arch: "x86_64 · aarch64",
     summary: {
-      en: "Install `jiku-bin` (R2-backed prebuilt) or `jiku` (`PKGBUILD.jiku.in`) alongside Koma.",
+      en: "Install prebuilt `jiku-bin` or source `jiku` (`PKGBUILD.jiku.in`) alongside Koma.",
       "zh-CN":
         "配合 Koma 安装预构建的 `jiku-bin` 或源码包 `jiku`（`PKGBUILD.jiku.in`）。",
       ja: "Koma と連携するビルド済み `jiku-bin` またはソース版 `jiku` を AUR から導入します。",
@@ -366,10 +366,9 @@ export const JIKU_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     arch: "x86_64 · aarch64",
     summary: {
-      en: "nFPM `.rpm` packages (`nfpm/jiku.yaml`) and Copr builds shipping `jikud` and `jiku`.",
-      "zh-CN":
-        "由 `nfpm/jiku.yaml` 生成的 `.rpm` 安装包与 Copr 构建，包含 `jikud` 与 `jiku`。",
-      ja: "`nfpm/jiku.yaml` ベースの `.rpm` パッケージおよび Copr ビルド（`jikud` / `jiku`）。",
+      en: "`.rpm` release packages (`jiku.yaml`) and Copr builds shipping `jikud` and `jiku`.",
+      "zh-CN": "包含 `jikud` 与 `jiku` 的 `.rpm` 安装包及 Copr 构建。",
+      ja: "`jikud` と `jiku` を収録した `.rpm` パッケージおよび Copr ビルド。",
     },
     commands: [
       {
@@ -382,9 +381,9 @@ export const JIKU_INSTALL_CHANNELS: readonly InstallChannel[] = [
       },
       {
         label: {
-          en: "Direct RPM from R2 CDN",
-          "zh-CN": "从 R2 CDN 直接安装 RPM",
-          ja: "R2 CDN から直接 RPM を導入",
+          en: "Direct RPM Package",
+          "zh-CN": "直接安装 RPM 包",
+          ja: "RPM パッケージを直接導入",
         },
         code: 'TAG=$(curl -fsSL https://cdn.komawm.org/install/jiku/latest.txt)\nsudo dnf install -y "https://cdn.komawm.org/releases/jiku/$TAG/jiku-${TAG#v}-1.x86_64.rpm"',
       },
@@ -447,11 +446,11 @@ export const JIKU_INSTALL_CHANNELS: readonly InstallChannel[] = [
       ja: "Cargo ソース",
     },
     name: {
-      en: "Build from Source (Rust 1.100.0)",
-      "zh-CN": "从源码编译（Rust 1.100.0）",
-      ja: "ソースからビルド（Rust 1.100.0）",
+      en: "Build from Source",
+      "zh-CN": "从源码编译",
+      ja: "ソースからビルド",
     },
-    arch: "Rust 1.100.0 · 2024",
+    arch: "Cargo · Workspace",
     summary: {
       en: "Build `jikud` and `jiku` CLI directly from `komawm/jiku` with Cargo.",
       "zh-CN": "从 `komawm/jiku` 直接使用 Cargo 编译安装 `jikud` 与 `jiku`。",

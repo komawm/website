@@ -20,7 +20,18 @@ export interface Env {
 
 export type SiteLocale = "en" | "zh-CN" | "ja";
 
-const STATIC_PREFIXES = ["/_astro/", "/icons/", "/placeholders/"];
+const STATIC_PREFIXES = ["/_astro/", "/icons/", "/media/"];
+const HSTS_HEADER = "max-age=31536000; includeSubDomains";
+
+function withHsts(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set("Strict-Transport-Security", HSTS_HEADER);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 const BOT_RE =
   /bot|crawl|spider|slurp|lighthouse|facebookexternalhit|twitterbot|slackbot|discordbot/iu;
 
@@ -61,15 +72,21 @@ export function inferGeoLocale(request: Request): SiteLocale {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method !== "GET" && request.method !== "HEAD") {
-      return env.ASSETS.fetch(request);
+      return withHsts(await env.ASSETS.fetch(request));
     }
 
     const url = new URL(request.url);
-    if (url.hostname.toLowerCase() === "www.komawm.org") {
+    const hostname = url.hostname.toLowerCase();
+    const isLocalHost =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.endsWith(".workers.dev");
+    if (!isLocalHost && (url.protocol === "http:" || hostname === "www.komawm.org")) {
       return new Response(null, {
         status: 301,
         headers: {
           Location: `https://komawm.org${url.pathname}${url.search}`,
+          "Strict-Transport-Security": HSTS_HEADER,
           "Cache-Control": "public, max-age=300",
         },
       });
@@ -77,17 +94,17 @@ export default {
 
     const { pathname } = url;
 
-    // Serve static binaries, CSS/JS chunks, sitemaps, and search indices directly.
+    // Serve static binaries, media, CSS/JS chunks, sitemaps, and search indices directly.
     if (
       STATIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
-      /\.(?:css|js|json|xml|ico|svg|png|webp|jpg|woff2|txt)$/iu.test(pathname)
+      /\.(?:css|js|json|xml|ico|svg|png|webp|jpg|webm|mp4|woff2|txt)$/iu.test(pathname)
     ) {
-      return env.ASSETS.fetch(request);
+      return withHsts(await env.ASSETS.fetch(request));
     }
 
     const ua = request.headers.get("user-agent") ?? "";
     if (BOT_RE.test(ua)) {
-      return env.ASSETS.fetch(request);
+      return withHsts(await env.ASSETS.fetch(request));
     }
 
     const cookieLocale = parseCookieLocale(request.headers.get("cookie"));
@@ -99,11 +116,16 @@ export default {
       const preferred = inferGeoLocale(request);
       if (preferred !== "en") {
         const dest = new URL(request.url);
+        if (!isLocalHost) {
+          dest.protocol = "https:";
+          dest.hostname = "komawm.org";
+        }
         dest.pathname = localizePathname(pathname, preferred);
         return new Response(null, {
           status: 302,
           headers: {
             Location: dest.toString(),
+            "Strict-Transport-Security": HSTS_HEADER,
             Vary: "Cookie, CF-IPCountry, Accept-Language",
             "Cache-Control": "private, no-store",
           },
@@ -111,6 +133,6 @@ export default {
       }
     }
 
-    return env.ASSETS.fetch(request);
+    return withHsts(await env.ASSETS.fetch(request));
   },
 };

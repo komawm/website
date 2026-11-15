@@ -1,23 +1,27 @@
-# LuaLS Type Completion (koma-types)
+# Editor Completion (koma-types)
 
-Editor autocompletion, hover docs, and enum diagnostics for `~/.config/koma/init.lua` are published in the standalone `Apache-2.0` repository [komawm/koma-types](https://github.com/komawm/koma-types) and reproduced byte-for-byte from `komactl gen-types` (`koma-lua/src/typegen.rs`).
+Editor autocompletion, hover documentation, and option diagnostics for `~/.config/koma/init.lua` are provided by `komactl gen-types` and the `Apache-2.0` stub repository [komawm/koma-types](https://github.com/komawm/koma-types).
+
+![Editing ~/.config/koma/init.lua with komactl and Dwindle tiling](/media/koma-dwindle.webp "Dwindle tiling layout alongside ~/.config/koma/init.lua and komactl.")
 
 ## Generating or Cloning `types/koma.lua`
 
-You can either generate the stub locally from your installed `komactl` binary or clone `komawm/koma-types`:
+Generate the type file directly from your installed `komactl` binary (recommended so stubs match your running version) or clone `komawm/koma-types`:
 
 ```bash
-# Option A: Emit directly from installed komactl
+# Option A: Generate directly from installed komactl
 mkdir -p ~/.config/koma/types
 komactl gen-types > ~/.config/koma/types/koma.lua
 
-# Option B: Clone the versioned snapshot repository
+# Option B: Clone the versioned stub repository
 git clone --depth 1 https://github.com/komawm/koma-types.git ~/.local/share/koma-types
 ```
 
+Re-run `komactl gen-types > ~/.config/koma/types/koma.lua` after upgrading Koma to refresh new fields and actions.
+
 ## Editor Setup (`.luarc.json`)
 
-Place a `.luarc.json` file inside `~/.config/koma/` pointing `workspace.library` at the directory containing `koma.lua`:
+Create `~/.config/koma/.luarc.json` pointing `workspace.library` at the directory containing `koma.lua`:
 
 ```json
 {
@@ -31,12 +35,12 @@ Place a `.luarc.json` file inside `~/.config/koma/` pointing `workspace.library`
 }
 ```
 
-### Editor Integrations
+If you cloned `komawm/koma-types` instead, set `"workspace.library"` to `["~/.local/share/koma-types/types"]` (or symlink `~/.local/share/koma-types/types` to `~/.config/koma/types`).
 
-- **Neovim (`nvim-lspconfig` / `lazydev.nvim`)**: Ensure `lua_ls` attaches inside `~/.config/koma/` (it automatically reads `.luarc.json`), or add `~/.local/share/koma-types/types` to `lazydev.nvim` `library` paths.
-- **Helix (`languages.toml`)**: Helix uses `lua-language-server` automatically for `.lua` buffers and picks up `~/.config/koma/.luarc.json`.
-- **Zed / VS Code (`sumneko.lua`)**: Open `~/.config/koma` as a folder; `LuaLS` resolves `koma.layout`, `koma.monitor`, `koma.input`, `koma.appearance`, `koma.rule.*`, `koma.macro.*`, and `koma.act.*` completions immediately.
+### Editor Notes
 
-## Reproducibility Guarantee
+- **Neovim (`nvim-lspconfig` / `lazydev.nvim`)**: Opening `~/.config/koma/init.lua` picks up `.luarc.json` automatically with `lua_ls`, or you can add `~/.local/share/koma-types/types` to `lazydev.nvim` `library` paths.
+- **Helix**: Uses `lua-language-server` automatically for `.lua` files and reads `~/.config/koma/.luarc.json`.
+- **Zed / VS Code (`sumneko.lua`)**: Open `~/.config/koma` as the workspace folder to enable completion across `koma.layout`, `koma.monitor`, `koma.input`, `koma.appearance`, `koma.rule.*`, `koma.macro.*`, and `koma.act.*`.
 
-`komawm/koma-types` verifies on every CI run that `types/koma.lua` parses cleanly under `luac -p` (`Lua 5.4`) and matches `komactl gen-types` output (`artifact.toml` `generator_reproduced = true`).
+Published stubs in `komawm/koma-types` are checked against `luac -p` (Lua 5.4) and matched to `komactl gen-types` output.

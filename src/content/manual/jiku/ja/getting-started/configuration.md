@@ -1,6 +1,6 @@
-# デーモン設定・DecisionCompiler・TTS
+# 設定とポリシー
 
-`jikud` は `~/.config/jiku/config.toml`（`--config` または `$JIKU_CONFIG`）および `~/.config/jiku/init.lua`（`--policy` または `$JIKU_POLICY`）を読み込みます。全項目に検証済みデフォルト値が定義されているため、カスタム設定前でも起動可能です。
+`jikud` は `~/.config/jiku/config.toml`（`--config` または `$JIKU_CONFIG` で上書き可）と `~/.config/jiku/init.lua` のポリシーフック（`--policy` または `$JIKU_POLICY` で上書き可）を読み込みます。すべての項目に検証済みの既定値が設定されているため、独自ファイルを作成する前でも起動できます。
 
 ## `config.toml` リファレンス
 
@@ -13,7 +13,7 @@ dropbox_dir = "~/JikuBox"
 [koma]
 default_workspace = "agent:work"
 default_overlay = "grid_225"     # "grid_225" | "som" | "none"
-perceptual_hash_threshold = 4    # L0 dHash ハミング距離しきい値
+perceptual_hash_threshold = 4    # 重複フレーム判定のハミング距離しきい値
 
 [providers.opencode_go]
 kind = "opencode_go"
@@ -35,34 +35,34 @@ temperature = 0.2
 
 [roles.decision_router]
 provider = "gemini"
-model = "gemini-decision-1"      # キー未設定時は EmulatedStructuredTextModel へ自動フォールバック
+model = "gemini-decision-1"      # キー未設定時は主プランナーモデルへ自動フォールバック
 driver = "decisions"
 optional = true
 fallback_to_primary_text_model = true
 ```
 
-## `DecisionCompiler`・`GridSpec`・`TimeSlotMacro` 設定
+## 判定ルーティングとグリッド設定（`[decision_router.compiler]`）
 
-`[decision_router.compiler]` と `[decision_router.compiler.grid]` で全パラメータを調整できます。
+空間グリッドの分割数や判定しきい値は `[decision_router.compiler]` および `[decision_router.compiler.grid]` で調整します。
 
 | キー | 既定値 | 説明 |
 | :--- | :--- | :--- |
-| `grid.cols` / `grid.rows` | `15` / `15` | 空間グリッド分割数（`1..=64`、既定 `225` セル `A1`–`O15`） |
-| `fast_path_confidence` | `0.85` | System-2 へ回さず `vseat` を直接実行する最小信頼度 |
-| `min_cell_prob` | `0.05` | 重心補間（`grid_225`）に含める最小セル確率 |
-| `time_slot_min_confidence` | `0.75` | `TimeSlotMacro` 連続ショートカット実行の最小スロット信頼度 |
-| `bernoulli_activation_threshold` | `0.80` | `BernoulliExpectedStep` 発動に必要な最小 `P(Yes)` |
-| `probe_min_prob` | `0.15` | `ThresholdProbe` 候補保持の下限確率 |
-| `stop_sentinel` / `fallback_token` | `"stop_done"` / `"NONE_OR_OTHER"` | シーケンス終了トークンおよび未知選択肢フォールバック |
+| `grid.cols` / `grid.rows` | `15` / `15` | 空間ターゲットグリッドの分割数（`1..=64`、既定は `225` セル `A1`–`O15`） |
+| `fast_path_confidence` | `0.85` | プランナーモデルへエスカレーションせず直接 `vseat` 入力を行う最小信頼度 |
+| `min_cell_prob` | `0.05` | 上位 `K` セルからターゲット座標を補間する際に含める最小確率 |
+| `time_slot_min_confidence` | `0.75` | 連続ショートカット手順の各ステップ継続に必要な最小信頼度 |
+| `bernoulli_activation_threshold` | `0.80` | 条件付き後続ステップを発火させる最小 `P(Yes)` |
+| `probe_min_prob` | `0.15` | プローブ時に候補選択肢を保持する最小確率の下限 |
+| `stop_sentinel` / `fallback_token` | `"stop_done"` / `"NONE_OR_OTHER"` | 手順終了センチネルおよび未知選択肢用フォールバックトークン |
 
 ## デスクトップ通知と任意 TTS（`[notify]` / `[tts]`）
 
-- **デスクトップ通知（`[notify]`）**：既定で `desktop_dbus = true`・`app_name = "Jiku"` となり、`task_completed` / `task_failed` / `verification_needed` / `skill_staged` 時に D-Bus / `notify-send` で通知します。
-- **任意 TTS（`[tts]`、既定 `enabled = false`）**：有効化すると `voicevox`（`http://127.0.0.1:50021`, `speaker_id = 3`）、`openai_speech`、`noop` を選択できます（`VoicevoxProvider` / `OpenAiSpeechProvider` / `NoopTtsProvider`）。
+- **デスクトップ通知（`[notify]`）**: 既定で `desktop_dbus = true`・`app_name = "Jiku"` となり、`task_completed`、`task_failed`、`verification_needed`、`skill_staged` 発生時に `org.freedesktop.Notifications` / `notify-send` で通知します。
+- **任意 TTS（`[tts]`、既定で無効）**: `enabled = true` にすると `provider = "voicevox"`（`http://127.0.0.1:50021`、`speaker_id = 3`）、`"openai_speech"`、`"noop"` を選択できます。
 
-## Phodopus Lua ポリシー（`~/.config/jiku/init.lua`）と `jikud.service`
+## Lua 設定（`~/.config/jiku/init.lua`）と `jikud.service`
 
-ポリシーフックは [Phodopus](https://github.com/Xuepoo/phodopus) 隔離 VM 内で動作し、`systemd --user` ユニットとして常駐できます。
+`jikud` は OS やファイルシステム操作プリミティブを遮断したサンドボックス化 Lua 5.4 ランタイム上でポリシーフックを実行し、`systemd --user` ユニット（`jikud.service`）も提供します。
 
 ```ini
 # ~/.config/systemd/user/jikud.service

@@ -1,115 +1,122 @@
-# Hooke Spring Physics, Bezier Curves & Ricing
+# Animations, Borders & Blur
 
-Koma combines a deterministic **Damped Hooke's Law Semi-Implicit Euler** spring solver with custom **Cubic Bezier** curves, per-channel animation styles, Dual Kawase frosted blur, rotating gradient borders, and per-window visual ricing rules in `init.lua`.
+Koma configures window animations, rounded corners, gradient borders, shadows, inactive dimming, and Dual Kawase blur inside `koma.appearance({...})` in `~/.config/koma/init.lua`, with optional per-window overrides through `koma.rule.window({...})`.
 
-## Damped Hooke's Law Semi-Implicit Euler Solver
+## Solvers & Custom Curves (`koma.bezier`, `koma.spring`)
 
-By default (`solver = "spring"`), Koma integrates animated window positions, sizes, opacity, focus interpolation, and workspace offsets using the second-order damped spring ODE:
+- **Springs (`solver = "spring"` or `"analytical_spring"`)**: Controlled by `damping_ratio` (default `1.0` = no overshoot; `< 1.0` adds bounce) and `stiffness` (default `800.0`), or explicit `mass` (`1.0`) and `damping`, plus rest threshold `epsilon` (default `0.0005`). Retargeting a window mid-motion preserves its current velocity.
+- **Cubic Beziers (`koma.bezier(name, x1, y1, x2, y2, duration_ms)`)**: Standard 4-point easing curves (`x1, x2` in `0.0..1.0`; `y1, y2` in `-2.0..3.0` for overshoot; `duration_ms` in `1..5000`). Also accepts table syntax `{ points = { x1, y1, x2, y2 }, duration_ms = ... }`.
+- **Custom Springs (`koma.spring(name, spec)`)**: Registers a named spring with `mass`, `damping` or `damping_ratio`, `stiffness`, and `epsilon`.
 
-$$m\ddot{x} + c\dot{x} + k(x - x_{\text{target}}) = 0$$
-
-Given mass $m \ge 0.01$, damping $c \ge 0.0$, stiffness $k \ge 1.0$, and convergence threshold $\epsilon \ge 10^{-6}$, each sub-step advances velocity first and position second (Symplectic / Semi-Implicit Euler):
-
-$$v_{t+\Delta t} = v_t + \frac{-k(x_t - x_{\text{target}}) - c v_t}{m}\Delta t$$
-
-$$x_{t+\Delta t} = x_t + v_{t+\Delta t}\Delta t$$
-
-When configuring via dimensionless damping ratio $\zeta$ instead of physical damping $c$, Koma computes $c = 2\zeta\sqrt{mk}$ automatically.
-
-### Sub-Stepping and Dynamic Momentum Preservation
-
-To remain numerically stable across frame drops and high-refresh monitors without allocating per-frame heap buffers ($O(1)$ time, $O(1)$ space per track):
-
-- Total frame delta is clamped to $0.0 \le \Delta t \le 0.1\,\text{s}$ and split into $N = \lceil \Delta t / (1/240) \rceil \in [1, 24]$ equal sub-steps.
-- When a target changes mid-flight (dynamic window drag, hover focus switch, tile reflow, or rapid workspace switch), `retarget` updates $x_{\text{target}}$ while preserving live position $x$ and velocity $v$.
-- A track snaps to rest when $|x - x_{\text{target}}| \le 50\epsilon$ and $|v| \le 250\epsilon$.
-
-You can also choose `solver = "analytical_spring"` globally or per curve when a closed-form analytical spring curve is desired.
-
-## Custom Cubic Bezier Curves (`koma.bezier`)
-
-Register named Bezier curves with `koma.bezier(name, x1, y1, x2, y2, duration_ms)` or table syntax:
-
-- Control point $x_1, x_2$ are clamped to $[0.0, 1.0]$, while $y_1, y_2$ accept $[-2.0, 3.0]$ for expressive overshoot curves such as `[0.05, 0.9, 0.1, 1.1]`.
-- Duration is clamped to $1 \le d \le 5000\,\text{ms}$.
-- Koma solves $X(u) = \tau$ via 8 Newton-Raphson iterations with a 12-iteration bisection fallback ($O(1)$ time, $O(1)$ space) and computes exact chain-rule velocity $\dot{x}(t)$ so Bezier tracks hand off continuously into spring momentum.
-
-## Named Curve Presets & Per-Channel Configuration
-
-Built-in presets resolved by name include:
+### Built-In Curve Presets
 
 | Preset | Definition | Character |
-| --- | --- | --- |
-| `linear` | `[0.0, 0.0, 1.0, 1.0]` | Constant velocity |
-| `ease_out` / `default` | `[0.22, 1.0, 0.36, 1.0]` | Crisp deceleration |
-| `md3_decel` | `[0.05, 0.7, 0.1, 1.0]` | Material Design 3 standard |
-| `overshot` | `[0.05, 0.9, 0.1, 1.1]` | Slight Hyprland-style pop overshoot |
-| `fluent` | `[0.1, 0.9, 0.2, 1.0]` | Fluent motion curve |
-| `snappy_spring` | `m = 1.0, c = 36.0, k = 420.0` | Tight responsive spring |
-| `bouncy_spring` | `m = 1.0, c = 20.0, k = 320.0` | Playful spring overshoot |
-| `gentle_spring` | `m = 1.2, c = 28.0, k = 180.0` | Soft relaxed motion |
+| :--- | :--- | :--- |
+| `linear` | `[0.0, 0.0, 1.0, 1.0]`, `200 ms` | Constant speed |
+| `ease_out` / `default` | `[0.22, 1.0, 0.36, 1.0]`, `250 ms` | Crisp deceleration |
+| `md3_decel` | `[0.05, 0.7, 0.1, 1.0]`, `280 ms` | Material Design 3 deceleration |
+| `overshot` | `[0.05, 0.9, 0.1, 1.1]`, `280 ms` | Slight pop overshoot |
+| `fluent` | `[0.1, 0.9, 0.2, 1.0]`, `220 ms` | Smooth Fluent curve |
+| `snappy_spring` | `mass = 1.0, damping = 36.0, stiffness = 420.0` | Tight responsive spring |
+| `bouncy_spring` | `mass = 1.0, damping = 20.0, stiffness = 320.0` | Playful spring overshoot |
+| `gentle_spring` | `mass = 1.2, damping = 28.0, stiffness = 180.0` | Soft relaxed motion |
+| `instant` / `none` | Immediate snap | Disables animation for that channel |
 
-Register custom springs and Beziers cleanly, then bind per-channel curves and styles (`windows_open` / alias `windows_in`, `windows_close` / alias `windows_out`, `windows_move`, `fade`, `border`, `workspaces`):
+## Per-Channel Animation Configuration
+
+Assign curves and transition styles per channel (`windows_open` / alias `windows_in`, `windows_close` / alias `windows_out`, `windows_move`, `fade`, `border`, and `workspaces`):
 
 ```lua
 koma.bezier("rice_pop", 0.05, 0.9, 0.1, 1.1, 260)
 koma.spring("glide", { mass = 1.0, damping_ratio = 0.82, stiffness = 360.0 })
 
 koma.appearance({
-  animations = {
-    enabled = true,
-    solver = "spring",
-    windows_open = { enabled = true, curve = "rice_pop", style = "popin 85%" },
-    windows_close = { enabled = true, curve = "glide", style = "slide" },
-    windows_move = { enabled = true, curve = "glide" },
-    fade = { enabled = true, curve = "md3_decel", duration_ms = 180 },
-    border = { enabled = true, curve = "snappy_spring" },
-    workspaces = { enabled = true, curve = "overshot", style = "slidevert" },
-  },
+    animations = {
+        enabled = true,
+        solver = "spring",
+        windows_open = { enabled = true, curve = "rice_pop", style = "popin 85%" },
+        windows_close = { enabled = true, curve = "glide", style = "slide" },
+        windows_move = { enabled = true, curve = "glide" },
+        fade = { enabled = true, curve = "md3_decel", duration_ms = 180 },
+        border = { enabled = true, curve = "snappy_spring" },
+        workspaces = { enabled = true, curve = "overshot", style = "slidevert" },
+    },
 })
 ```
 
-Supported `windows_open` / `windows_close` styles are `popin` (`popin 85%`), `slide` (nearest viewport edge, or explicit `slide top|bottom|left|right`), `gnomed`, and `fade`. Supported `workspaces` styles are `slide`, `slidevert`, `fade`, and `none` (workspace transitions are automatically skipped during headless capture/screencasts).
+- **Window open/close styles**: `"popin"` (e.g. `"popin 85%"`), `"slide"` (nearest viewport edge, or `"slide top"`, `"slide bottom"`, `"slide left"`, `"slide right"`), `"gnomed"`, and `"fade"`.
+- **Workspace switch styles**: `"slide"`, `"slidevert"`, `"fade"`, and `"none"` (workspace animations are automatically skipped in headless captures and screencasts).
 
-## Gradient Borders, Dual Kawase Blur & Window Rice Rules
+## Gradient Borders, Blur & Window Overrides
 
-Combine GLES2-compatible multi-stop gradient borders and Dual Kawase frosted blur with per-window rice overrides:
+Set global rounded corners (`corner_radius`), multi-stop rotating gradient borders, and Dual Kawase blur in `koma.appearance({...})`, then tune individual applications with `koma.rule.window({...})`:
 
 ```lua
 koma.appearance({
-  border = {
-    width = 2,
-    radius = 12,
-    active_color = "#7aa2f7ff",
-    active_color_end = "#bb9af7ff",
-    inactive_color = "#292e42cc",
-    inactive_color_end = "#1f2335cc",
-    gradient_angle = 45.0,
-    gradient_rotate_rpm = 6.0,
-  },
-  blur = {
-    enabled = true,
-    passes = 3,
-    size = 6,
-  },
+    corner_radius = 12,
+    border = {
+        enabled = true,
+        width = 2.0,
+        active_color = "#7aa2f7ff",
+        active_color_end = "#bb9af7ff",
+        inactive_color = "#292e42cc",
+        inactive_color_end = "#1f2335cc",
+        gradient_angle = 45.0,
+        gradient_rotate_rpm = 6.0,
+    },
+    blur = {
+        enabled = true,
+        passes = 3,
+        size = 6,
+    },
 })
 
 koma.rule.window({
-  name = "terminal-rice",
-  matches = { { app_id = "^foot$" } },
-  opacity = 0.96,
-  inactive_opacity = 0.84,
-  animation = "popin 88%",
-  border_color = "#7dcfffff",
+    name = "terminal-rice",
+    matches = { { app_id = "^foot$" } },
+    opacity = 0.96,
+    inactive_opacity = 0.84,
+    animation = "popin 88%",
+    border_color = "#7dcfffff",
 })
 
 koma.rule.window({
-  name = "video-player-clean",
-  matches = { { app_id = "^mpv$" } },
-  no_blur = true,
-  no_shadow = true,
-  inactive_opacity = 1.0,
+    name = "video-player-clean",
+    matches = { { app_id = "^mpv$" } },
+    no_blur = true,
+    no_shadow = true,
+    inactive_opacity = 1.0,
 })
 ```
 
-All `WindowAnimationTable` focus transitions interpolate border endpoints smoothly via `focus_factor` $\in [0, 1]$ without requiring external shader plugins.
+## Pointer Kinematics in Macros (`ctx:move_to` / `ctx:drag`)
+
+Pointer movement inside `koma.macro.define(...)` accepts a `kinematics` table with `profile` set to `"instant"`, `"minimum_jerk"` (default), `"spring"` (aliases `"hooke"`, `"hooke_spring"`), or `"bezier"` (or a named `curve`):
+
+```lua
+koma.macro.define({
+    id = "canvas.spring_pan_drag",
+    app_id = ".*",
+    description = "Middle-mouse pan drag with smooth spring pointer motion",
+    params = {
+        dx = { type = "int", default = 180 },
+        dy = { type = "int", default = -90 },
+    },
+    run = function(ctx, args)
+        ctx:drag({
+            button = "middle",
+            from = { anchor = "center", x = 0, y = 0 },
+            to = { anchor = "center", x = args.dx, y = args.dy },
+            hold_before_move_ms = 25,
+            kinematics = {
+                profile = "spring",
+                mass = 1.0,
+                damping = 22.0,
+                stiffness = 340.0,
+                epsilon = 0.01,
+            },
+            hold_before_release_ms = 20,
+        })
+    end,
+})
+```
