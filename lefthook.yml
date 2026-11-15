@@ -1,0 +1,5 @@
+# Lefthook owns pre-commit; CarryCtx owns prepare-commit-msg and post-commit.
+pre-commit:
+  commands:
+    format-check:
+      run: just fmt-check-files {staged_files}

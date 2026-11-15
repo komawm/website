@@ -1,0 +1,8 @@
+[repo]
+name = "website"
+kind = "web"
+lang = "ts"
+role = "Public Koma (komawm.org) and Jiku (komawm.org/jiku/) tri-lingual static website"
+owner = "koma"
+repository = "https://github.com/komawm/website"
+docs = "https://github.com/komawm/docs"
