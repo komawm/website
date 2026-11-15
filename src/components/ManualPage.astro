@@ -1,0 +1,462 @@
+---
+import SiteFooter from "./SiteFooter.astro";
+import SiteHeader from "./SiteHeader.astro";
+import {
+  getUiMessages,
+  localizePath,
+  SUPPORTED_LOCALES,
+  type ProductSurface,
+  type SiteLocale,
+} from "../lib/i18n.ts";
+import {
+  docRouteHref,
+  loadManifest,
+  loadRenderedDoc,
+} from "../lib/manualDocs.ts";
+import "../styles/global.css";
+
+interface Props {
+  locale: SiteLocale;
+  surface: ProductSurface;
+  fullSlug: string;
+}
+
+const { locale, surface, fullSlug } = Astro.props;
+const t = getUiMessages(locale);
+const manifest = await loadManifest(surface);
+const doc = await loadRenderedDoc(surface, locale, fullSlug);
+const brandName = surface === "jiku" ? "Jiku" : "Koma";
+const editUrl = `https://github.com/komawm/docs/tree/main/manual/${surface}/${locale}`;
+---
+
+<!doctype html>
+<html lang={locale} data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:type" content="article" />
+    <meta name="description" content={`${doc.title} — ${brandName}`} />
+    <link rel="icon" type="image/svg+xml" href="/icons/koma-mark.svg" />
+    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link
+      rel="canonical"
+      href={`https://komawm.org${localizePath(Astro.url.pathname, locale)}`}
+    />
+    {SUPPORTED_LOCALES.map((loc) => (
+      <link
+        rel="alternate"
+        hreflang={loc}
+        href={`https://komawm.org${localizePath(Astro.url.pathname, loc)}`}
+      />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={`https://komawm.org${localizePath(Astro.url.pathname, "en")}`}
+    />
+    <title>{`${doc.title} — ${brandName}`}</title>
+    <script is:inline>
+      try {
+        const s = window.localStorage.getItem("komawm-theme");
+        const dark = s
+          ? s === "dark"
+          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#doc-article">{t.skipToContent}</a>
+    <SiteHeader locale={locale} surface={surface} />
+
+    <div class="wiki-layout">
+      <aside class="wiki-sidebar" aria-label={t.sidebarTitle}>
+        {manifest.sections.map((sec) => (
+          <details class="sidebar-group" open>
+            <summary>{sec.title[locale]}</summary>
+            <ul>
+              {sec.items.map((item) => {
+                const slug = `${sec.id}/${item.slug}`;
+                const href = docRouteHref(surface, locale, slug);
+                const active = slug === fullSlug;
+                return (
+                  <li>
+                    <a
+                      href={href}
+                      data-doc-swap-link="true"
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {item.title[locale]}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        ))}
+      </aside>
+
+      <main id="main-content" class="wiki-center" tabindex="-1">
+        <article
+          id="doc-article"
+          class="doc-prose"
+          itemscope
+          itemtype="https://schema.org/TechArticle"
+        >
+          <div class="article-head-row">
+            <h1 itemprop="headline">{doc.title}</h1>
+            <a
+              href={editUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="edit-page-icon"
+              aria-label="Edit on GitHub"
+              title="Edit on GitHub"
+            >
+              <svg
+                viewBox="0 0 20 20"
+                width="17"
+                height="17"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                aria-hidden="true"
+              >
+                <path d="M11.5 3.5H5.2A1.7 1.7 0 0 0 3.5 5.2v9.6a1.7 1.7 0 0 0 1.7 1.7h9.6a1.7 1.7 0 0 0 1.7-1.7v-6.3" />
+                <path
+                  d="m14.8 2.9 2.3 2.3-6.6 6.6-2.8.5.5-2.8 6.6-6.6Z"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+
+          <div itemprop="articleBody" set:html={doc.html} />
+
+          <nav class="doc-pager" aria-label="Pagination">
+            {doc.prev ? (
+              <a
+                href={doc.prev.href}
+                data-doc-swap-link="true"
+                class="pager-card"
+              >
+                <span class="pager-dir">← {t.prevPage}</span>
+                <strong>{doc.prev.title}</strong>
+              </a>
+            ) : (
+              <span />
+            )}
+            {doc.next && (
+              <a
+                href={doc.next.href}
+                data-doc-swap-link="true"
+                class="pager-card pager-next"
+              >
+                <span class="pager-dir">{t.nextPage} →</span>
+                <strong>{doc.next.title}</strong>
+              </a>
+            )}
+          </nav>
+        </article>
+      </main>
+
+      <aside id="doc-toc" class="wiki-toc" aria-label={t.onThisPage}>
+        <ul>
+          {doc.headings.map((h) => (
+            <li class:list={[`toc-d${h.depth}`]}>
+              <a href={`#${h.id}`}>{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+
+    <SiteFooter locale={locale} />
+
+    <script>
+      const pageCache = new Map<string, string>();
+
+      async function fetchDocHtml(url: string): Promise<string> {
+        const cached = pageCache.get(url);
+        if (cached) return cached;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const html = await res.text();
+        pageCache.set(url, html);
+        return html;
+      }
+
+      async function navigateDoc(href: string, push = true): Promise<void> {
+        try {
+          const rawHtml = await fetchDocHtml(href);
+          const parsed = new DOMParser().parseFromString(rawHtml, "text/html");
+          const nextArticle = parsed.getElementById("doc-article");
+          const nextToc = parsed.getElementById("doc-toc");
+          const curArticle = document.getElementById("doc-article");
+          const curToc = document.getElementById("doc-toc");
+          if (!nextArticle || !curArticle) {
+            window.location.assign(href);
+            return;
+          }
+          curArticle.replaceWith(nextArticle);
+          if (nextToc && curToc) curToc.replaceWith(nextToc);
+          document.title = parsed.title;
+          if (push) window.history.pushState({}, "", href);
+          window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+
+          for (const a of document.querySelectorAll(
+            ".wiki-sidebar a[data-doc-swap-link]",
+          )) {
+            const match =
+              new URL((a as HTMLAnchorElement).href, window.location.origin).pathname ===
+              new URL(href, window.location.origin).pathname;
+            if (match) a.setAttribute("aria-current", "page");
+            else a.removeAttribute("aria-current");
+          }
+        } catch {
+          window.location.assign(href);
+        }
+      }
+
+      document.addEventListener("mouseover", (e) => {
+        const a = (e.target as HTMLElement | null)?.closest(
+          "a[data-doc-swap-link]",
+        ) as HTMLAnchorElement | null;
+        if (a && a.origin === window.location.origin) {
+          fetchDocHtml(a.href).catch(() => {});
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (
+          e.defaultPrevented ||
+          e.button !== 0 ||
+          e.metaKey ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.altKey
+        )
+          return;
+        const a = (e.target as HTMLElement | null)?.closest(
+          "a[data-doc-swap-link]",
+        ) as HTMLAnchorElement | null;
+        if (!a || a.origin !== window.location.origin) return;
+        if (document.getElementById("doc-article")) {
+          e.preventDefault();
+          navigateDoc(a.href, true);
+        }
+      });
+
+      window.addEventListener("popstate", () => {
+        if (document.getElementById("doc-article")) {
+          navigateDoc(window.location.href, false);
+        }
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .wiki-layout {
+    max-width: 82rem;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3.5rem;
+    display: grid;
+    grid-template-columns: 14.25rem minmax(0, 1fr) 13.75rem;
+    gap: 2.75rem;
+    align-items: start;
+  }
+  .wiki-sidebar {
+    position: sticky;
+    top: 4.4rem;
+    max-height: calc(100vh - 5.2rem);
+    overflow-y: auto;
+  }
+  .sidebar-group {
+    margin-bottom: 0.45rem;
+  }
+  .sidebar-group summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--fg-primary);
+    padding: 0.32rem 0.35rem;
+  }
+  .sidebar-group summary::-webkit-details-marker {
+    display: none;
+  }
+  .sidebar-group summary::after {
+    content: "›";
+    font-size: 0.95rem;
+    color: var(--fg-muted);
+    transition: transform 0.14s ease;
+  }
+  .sidebar-group[open] summary::after {
+    transform: rotate(90deg);
+  }
+  .sidebar-group ul {
+    list-style: none;
+    margin: 0.1rem 0 0.55rem;
+    padding: 0 0 0 0.65rem;
+  }
+  .sidebar-group a {
+    display: block;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.81rem;
+    color: var(--fg-secondary);
+    text-decoration: none;
+  }
+  .sidebar-group a:hover {
+    color: var(--fg-primary);
+  }
+  .sidebar-group a[aria-current="page"] {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .wiki-center {
+    min-width: 0;
+  }
+  .doc-prose {
+    max-width: 47rem;
+  }
+  .article-head-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+  }
+  .doc-prose h1 {
+    margin: 0;
+    font-size: clamp(1.65rem, 2.5vw, 2.05rem);
+    font-weight: 400;
+    color: var(--fg-heading);
+    letter-spacing: -0.015em;
+  }
+  .edit-page-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-sm);
+    color: var(--fg-muted);
+    text-decoration: none;
+  }
+  .edit-page-icon:hover {
+    color: var(--accent);
+    background: var(--bg-subtle);
+  }
+  .doc-prose :global(h2) {
+    margin: 1.95rem 0 0.65rem;
+    font-size: 1.32rem;
+    font-weight: 400;
+    color: var(--fg-heading);
+  }
+  .doc-prose :global(pre) {
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--code-border);
+    background: var(--code-bg);
+    color: var(--code-fg);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.81rem;
+  }
+  .doc-prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.83em;
+    padding: 0.12rem 0.36rem;
+    border-radius: 3px;
+    background: var(--code-bg);
+    color: var(--code-fg);
+  }
+  .doc-prose :global(pre code) {
+    padding: 0;
+    background: transparent;
+  }
+  .doc-prose :global(img) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1.25rem 0;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-hairline);
+  }
+  .doc-pager {
+    margin-top: 2.5rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid var(--border-hairline);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+  .pager-card {
+    display: flex;
+    flex-direction: column;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--fg-primary);
+    background: var(--bg-canvas);
+  }
+  .pager-card:hover {
+    border-color: var(--accent);
+  }
+  .pager-next {
+    text-align: right;
+  }
+  .pager-dir {
+    font-size: 0.72rem;
+    color: var(--fg-muted);
+  }
+  .wiki-toc {
+    position: sticky;
+    top: 4.4rem;
+    font-size: 0.79rem;
+  }
+  .wiki-toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.38rem;
+  }
+  .wiki-toc a {
+    color: var(--fg-secondary);
+    text-decoration: none;
+  }
+  .wiki-toc a:hover {
+    color: var(--accent);
+  }
+  .toc-d3 {
+    padding-left: 0.75rem;
+  }
+  @media (max-width: 1060px) {
+    .wiki-layout {
+      grid-template-columns: 13.75rem minmax(0, 1fr);
+      gap: 2rem;
+    }
+    .wiki-toc {
+      display: none;
+    }
+  }
+  @media (max-width: 780px) {
+    .wiki-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .wiki-sidebar {
+      position: static;
+      max-height: none;
+      border-bottom: 1px solid var(--border-hairline);
+      padding-bottom: 0.75rem;
+    }
+  }
+</style>

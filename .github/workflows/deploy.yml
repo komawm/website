@@ -1,0 +1,83 @@
+name: Deploy production
+
+# Builds and deploys static pre-rendered HTML for both `komawm.org` (Koma) and
+# `komawm.org/jiku/` (Jiku sub-site) across `en`, `zh-CN`, and `ja`.
+#
+# Triggered automatically whenever `komawm/docs` publishes updated manual bundles
+# via `repository_dispatch` (`manual-published`), on `main` pushes, and on `workflow_dispatch`.
+
+on:
+  push:
+    branches:
+      - main
+  repository_dispatch:
+    types:
+      - manual-published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-komawm-org
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Pre-render manuals and deploy static assets
+    if: github.ref == 'refs/heads/main' || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    env:
+      MANUAL_DISPATCH_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+    steps:
+      - name: Check out website repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Bun 1.4.4
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install verified actionlint binary
+        shell: bash
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/actionlint.tar.gz"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
+            --output "${archive}"
+          echo "${ACTIONLINT_SHA256}  ${archive}" | sha256sum --check --strict
+          tar --extract --gzip --file "${archive}" --directory "${RUNNER_TEMP}" actionlint
+          echo "${RUNNER_TEMP}" >> "${GITHUB_PATH}"
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Sync R2 manuals, run checks and pre-render static HTML
+        run: bun run check
+
+      - name: Validate GitHub Actions workflows
+        run: actionlint .github/workflows/*.yml
+
+      - name: Deploy static ./dist to Cloudflare Workers Static Assets
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" || -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+              echo "::notice::CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are not configured in the 'production' environment; skipping Cloudflare Workers deploy on push."
+              exit 0
+            fi
+            echo "::error::CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN must be configured in the 'production' environment for ${GITHUB_EVENT_NAME}"
+            exit 1
+          fi
+          WRANGLER_SEND_METRICS=false ./node_modules/.bin/wrangler deploy

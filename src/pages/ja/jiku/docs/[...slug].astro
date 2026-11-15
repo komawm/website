@@ -1,0 +1,12 @@
+---
+import ManualPage from "../../../../components/ManualPage.astro";
+import { listSurfaceSlugs } from "../../../../lib/manualDocs.ts";
+
+export async function getStaticPaths() {
+  const slugs = await listSurfaceSlugs("jiku");
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+---
+<ManualPage locale="ja" surface="jiku" fullSlug={slug!} />

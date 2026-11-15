@@ -1,0 +1,468 @@
+---
+import KomaLogo from "./KomaLogo.astro";
+import {
+  getUiMessages,
+  LOCALE_LABELS,
+  localizePath,
+  SUPPORTED_LOCALES,
+  type ProductSurface,
+  type SiteLocale,
+} from "../lib/i18n.ts";
+
+interface Props {
+  locale: SiteLocale;
+  surface: ProductSurface;
+}
+
+const { locale, surface } = Astro.props;
+const t = getUiMessages(locale);
+const prefix = locale === "en" ? "" : `/${locale}`;
+const homeHref = `${prefix}/` || "/";
+const jikuHref = `${prefix}/jiku/`;
+const docsHref =
+  surface === "jiku" ? `${prefix}/jiku/docs/` : `${prefix}/docs/`;
+const isDocsRoute = Astro.url.pathname.includes("/docs");
+const githubUrl =
+  surface === "jiku"
+    ? "https://github.com/komawm/jiku"
+    : "https://github.com/komawm/koma";
+---
+
+<header class="wiki-header">
+  <div class="wiki-header-inner">
+    <div class="header-left">
+      <a href={homeHref} class="brand-link">
+        <KomaLogo size={25} />
+        <span class="brand-word">koma</span>
+      </a>
+      {surface === "jiku" && (
+        <a href={jikuHref} class="surface-slash">/ jiku</a>
+      )}
+    </div>
+
+    <nav class="header-right" aria-label="Site controls">
+      <div class="header-search" role="search">
+        <label class="search-box">
+          <svg
+            class="search-ico"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <circle cx="8.5" cy="8.5" r="5.5" />
+            <path d="M13 13l4 4" stroke-linecap="round" />
+          </svg>
+          <input
+            type="search"
+            id="wiki-search-input"
+            placeholder={t.searchPlaceholder}
+            autocomplete="off"
+            data-locale={locale}
+            data-empty={t.searchEmpty}
+          />
+        </label>
+        <div id="wiki-search-results" class="search-dropdown" hidden></div>
+      </div>
+
+      <button
+        type="button"
+        id="theme-toggle"
+        class="icon-btn"
+        aria-label={t.toggleThemeAria}
+        title={t.toggleThemeAria}
+      >
+        <svg
+          viewBox="0 0 20 20"
+          width="17"
+          height="17"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.65"
+          aria-hidden="true"
+        >
+          <circle cx="10" cy="10" r="6.2" />
+          <path
+            d="M10 3.8v12.4A6.2 6.2 0 0 0 10 3.8Z"
+            fill="currentColor"
+            stroke="none"
+          />
+        </svg>
+      </button>
+
+      <details class="lang-menu">
+        <summary
+          class="icon-btn"
+          aria-label={t.switchLangAria}
+          title="Language"
+        >
+          <svg
+            viewBox="0 0 20 20"
+            width="17"
+            height="17"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            aria-hidden="true"
+          >
+            <circle cx="10" cy="10" r="7.2" />
+            <ellipse cx="10" cy="10" rx="3.2" ry="7.2" />
+            <path d="M3.1 10h13.8" />
+          </svg>
+        </summary>
+        <ul class="lang-list">
+          {SUPPORTED_LOCALES.map((loc) => (
+            <li>
+              <a
+                href={localizePath(Astro.url.pathname, loc)}
+                data-set-locale={loc}
+                aria-current={loc === locale ? "true" : undefined}
+              >
+                {LOCALE_LABELS[loc]}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      <a href={docsHref} class:list={["nav-link", { "is-active": isDocsRoute }]}>
+        {t.navDocs}
+      </a>
+
+      <a
+        href={surface === "jiku" ? homeHref : jikuHref}
+        class:list={["nav-link", { "is-active": surface === "jiku" && !isDocsRoute }]}
+      >
+        {surface === "jiku" ? t.navKoma : t.navJiku}
+      </a>
+
+      <a
+        href={githubUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="icon-btn github-btn"
+        aria-label={t.githubAria}
+        title={githubUrl}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="17"
+          height="17"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.38-3.88-1.38-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z" />
+        </svg>
+        <span class="gh-text">GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const getSaved = () => {
+    try {
+      return window.localStorage.getItem("komawm-theme");
+    } catch {
+      return null;
+    }
+  };
+  const applyTheme = (mode: string | null) => {
+    const resolved =
+      mode === "dark" || mode === "light"
+        ? mode
+        : media.matches
+          ? "dark"
+          : "light";
+    root.setAttribute("data-theme", resolved);
+  };
+  applyTheme(getSaved());
+  media.addEventListener("change", () => {
+    if (!getSaved()) applyTheme(null);
+  });
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    const next = current === "dark" ? "light" : "dark";
+    try {
+      window.localStorage.setItem("komawm-theme", next);
+    } catch {}
+    applyTheme(next);
+  });
+
+  for (const link of document.querySelectorAll("[data-set-locale]")) {
+    link.addEventListener("click", () => {
+      const loc = (link as HTMLElement).dataset.setLocale;
+      if (loc) {
+        document.cookie = `komawm_locale=${loc}; Path=/; Max-Age=31536000; SameSite=Lax`;
+      }
+    });
+  }
+
+  let cachedIndex: Array<{
+    locale: string;
+    href: string;
+    title: string;
+    section: string;
+    surface: string;
+    excerpt: string;
+  }> | null = null;
+  const input = document.getElementById("wiki-search-input") as HTMLInputElement | null;
+  const dropdown = document.getElementById("wiki-search-results");
+
+  window.addEventListener("keydown", (e) => {
+    if (
+      (e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) &&
+      document.activeElement !== input
+    ) {
+      const tag = (document.activeElement as HTMLElement | null)?.tagName;
+      if (tag !== "INPUT" && tag !== "TEXTAREA") {
+        e.preventDefault();
+        input?.focus();
+      }
+    } else if (e.key === "Escape" && dropdown && !dropdown.hidden) {
+      dropdown.hidden = true;
+      input?.blur();
+    }
+  });
+
+  input?.addEventListener("input", async () => {
+    if (!dropdown) return;
+    const q = input.value.trim().toLowerCase();
+    if (!q) {
+      dropdown.hidden = true;
+      return;
+    }
+    if (!cachedIndex) {
+      try {
+        const res = await fetch("/search-index.json");
+        cachedIndex = await res.json();
+      } catch {
+        cachedIndex = [];
+      }
+    }
+    const loc = input.dataset.locale ?? "en";
+    const hits = (cachedIndex ?? [])
+      .filter(
+        (r) =>
+          r.locale === loc &&
+          `${r.title} ${r.section} ${r.excerpt}`.toLowerCase().includes(q),
+      )
+      .slice(0, 8);
+    dropdown.innerHTML = "";
+    if (hits.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "search-empty";
+      empty.textContent = input.dataset.empty ?? "No results";
+      dropdown.appendChild(empty);
+    } else {
+      for (const hit of hits) {
+        const a = document.createElement("a");
+        a.href = hit.href;
+        a.className = "search-hit";
+        a.dataset.docSwapLink = "true";
+        const meta = document.createElement("span");
+        meta.className = "search-hit-meta";
+        meta.textContent = `${hit.surface} / ${hit.section}`;
+        const title = document.createElement("strong");
+        title.textContent = hit.title;
+        a.append(meta, title);
+        dropdown.appendChild(a);
+      }
+    }
+    dropdown.hidden = false;
+  });
+</script>
+
+<style>
+  .wiki-header {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    border-bottom: 1px solid var(--border-hairline);
+    background: var(--bg-header);
+  }
+  .wiki-header-inner {
+    max-width: 82rem;
+    height: 3.15rem;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--fg-primary);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    font-size: 1.05rem;
+  }
+  .surface-slash {
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    color: var(--fg-secondary);
+    text-decoration: none;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .header-search {
+    position: relative;
+    width: 11.5rem;
+    margin-right: 0.15rem;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    height: 2rem;
+    padding: 0 0.58rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-hairline);
+    background: var(--bg-search);
+  }
+  .search-ico {
+    width: 0.88rem;
+    height: 0.88rem;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .search-box input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--fg-primary);
+    font: inherit;
+    font-size: 0.81rem;
+    outline: none;
+  }
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    right: 0;
+    width: min(22rem, 90vw);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding: 0.35rem;
+    max-height: 21rem;
+    overflow-y: auto;
+  }
+  .search-hit {
+    display: flex;
+    flex-direction: column;
+    padding: 0.45rem 0.62rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--fg-primary);
+  }
+  .search-hit:hover {
+    background: var(--accent-soft);
+  }
+  .search-hit-meta {
+    font-family: var(--font-mono);
+    font-size: 0.67rem;
+    color: var(--accent);
+  }
+  .search-empty {
+    margin: 0;
+    padding: 0.65rem;
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+  }
+  .nav-link,
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.34rem;
+    height: 2rem;
+    padding: 0 0.58rem;
+    border-radius: var(--radius-sm);
+    border: 0;
+    background: transparent;
+    color: var(--fg-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    list-style: none;
+    white-space: nowrap;
+  }
+  .icon-btn {
+    width: 2rem;
+    padding: 0;
+  }
+  .github-btn {
+    width: auto;
+    padding: 0 0.55rem;
+  }
+  .gh-text {
+    font-size: 0.8rem;
+  }
+  .nav-link:hover,
+  .icon-btn:hover {
+    color: var(--fg-primary);
+    background: var(--bg-hover);
+  }
+  .nav-link.is-active {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .lang-menu {
+    position: relative;
+  }
+  .lang-menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .lang-list {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    min-width: 8.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+  }
+  .lang-list a {
+    display: block;
+    padding: 0.38rem 0.6rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--fg-primary);
+    font-size: 0.81rem;
+  }
+  .lang-list a:hover,
+  .lang-list a[aria-current="true"] {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  @media (max-width: 780px) {
+    .header-search {
+      width: 7.5rem;
+    }
+    .gh-text {
+      display: none;
+    }
+  }
+</style>

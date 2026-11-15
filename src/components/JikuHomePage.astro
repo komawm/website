@@ -1,0 +1,31 @@
+---
+import HeroShell from "./HeroShell.astro";
+import { getUiMessages, type SiteLocale } from "../lib/i18n.ts";
+
+interface Props {
+  locale: SiteLocale;
+}
+
+const { locale } = Astro.props;
+const t = getUiMessages(locale);
+const prefix = locale === "en" ? "" : `/${locale}`;
+---
+
+<HeroShell
+  locale={locale}
+  surface="jiku"
+  siteTitle={t.jikuSiteTitle}
+  kicker={t.jikuKanji}
+  tagline={t.jikuTagline}
+  heroTitle={t.jikuHeroTitle}
+  heroDesc={t.jikuHeroDesc}
+  primaryCtaLabel={t.jikuReadDocs}
+  primaryCtaHref={`${prefix}/jiku/docs/`}
+  installCtaLabel={t.jikuInstallCta}
+  siblingCtaLabel={t.jikuCoreCta}
+  siblingCtaHref={`${prefix}/` || "/"}
+  optionalNote={t.jikuOptionalNote}
+  featuresHeading={t.jikuFeaturesHeading}
+  features={t.jikuFeatures}
+  showcase={t.jikuShowcase}
+/>

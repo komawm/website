@@ -1,0 +1,30 @@
+---
+import HeroShell from "./HeroShell.astro";
+import { getUiMessages, type SiteLocale } from "../lib/i18n.ts";
+
+interface Props {
+  locale: SiteLocale;
+}
+
+const { locale } = Astro.props;
+const t = getUiMessages(locale);
+const prefix = locale === "en" ? "" : `/${locale}`;
+---
+
+<HeroShell
+  locale={locale}
+  surface="koma"
+  siteTitle={t.komaSiteTitle}
+  kicker={t.komaKanji}
+  tagline={t.komaTagline}
+  heroTitle={t.komaHeroTitle}
+  heroDesc={t.komaHeroDesc}
+  primaryCtaLabel={t.komaReadDocs}
+  primaryCtaHref={`${prefix}/docs/`}
+  installCtaLabel={t.komaInstallCta}
+  siblingCtaLabel={t.komaCompanionCta}
+  siblingCtaHref={`${prefix}/jiku/`}
+  featuresHeading={t.komaFeaturesHeading}
+  features={t.komaFeatures}
+  showcase={t.komaShowcase}
+/>

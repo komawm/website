@@ -1,0 +1,360 @@
+---
+import {
+  getInstallChannels,
+  RELEASE_POINTERS,
+} from "../data/installChannels.ts";
+import {
+  getUiMessages,
+  type ProductSurface,
+  type SiteLocale,
+} from "../lib/i18n.ts";
+
+interface Props {
+  locale: SiteLocale;
+  surface: ProductSurface;
+}
+
+const { locale, surface } = Astro.props;
+const t = getUiMessages(locale);
+const channels = getInstallChannels(surface);
+const pointerUrl = RELEASE_POINTERS[surface];
+---
+
+<section id="install" class="install-shell" aria-labelledby="install-title">
+  <div class="section-header-bar">
+    <h2 id="install-title">{t.installHeading}</h2>
+    <div class="section-meta-links">
+      <a
+        href={pointerUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="meta-pill-link"
+      >
+        <span>{t.installPointerLabel}</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+      <a
+        href="https://github.com/komawm/packaging"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="meta-pill-link"
+      >
+        <span>{t.installPackagingLabel}</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="install-dock">
+    <div class="install-dock-tabs" role="tablist" aria-label={t.installHeading}>
+      {channels.map((channel, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`install-tab-${channel.id}`}
+          aria-controls={`install-pane-${channel.id}`}
+          aria-selected={index === 0 ? "true" : "false"}
+          tabindex={index === 0 ? 0 : -1}
+          class:list={["dock-tab", { "is-active": index === 0 }]}
+          data-install-tab={channel.id}
+        >
+          {channel.tabLabel[locale]}
+        </button>
+      ))}
+    </div>
+
+    <div class="install-dock-panes">
+      {channels.map((channel, index) => (
+        <div
+          class="install-dock-pane"
+          id={`install-pane-${channel.id}`}
+          role="tabpanel"
+          aria-labelledby={`install-tab-${channel.id}`}
+          tabindex="0"
+          data-install-pane={channel.id}
+          hidden={index !== 0}
+        >
+          <div class="dock-pane-meta">
+            <div>
+              <h3>{channel.name[locale]}</h3>
+              <p class="dock-pane-summary">{channel.summary[locale]}</p>
+            </div>
+            <span class="arch-chip">{channel.arch}</span>
+          </div>
+          <div class="command-stack">
+            {channel.commands.map((command) => (
+              <div class="command-entry">
+                {command.label && (
+                  <p class="command-label">{command.label[locale]}</p>
+                )}
+                <div class="command-block">
+                  <code>{command.code}</code>
+                  <button
+                    type="button"
+                    data-copy={command.code}
+                    aria-label={`${t.copy}: ${channel.name[locale]}`}
+                  >
+                    {t.copy}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script
+  define:vars={{
+    copiedMessage: t.copied,
+    copyFailedMessage: t.copyFailed,
+  }}
+>
+  const copied = copiedMessage;
+  const copyFailed = copyFailedMessage;
+  for (const element of document.querySelectorAll("[data-copy]")) {
+    if (!(element instanceof HTMLButtonElement)) continue;
+    const button = element;
+    const original = button.textContent ?? "Copy";
+    button.addEventListener("click", async () => {
+      const command = button.dataset.copy ?? "";
+      try {
+        await navigator.clipboard.writeText(command);
+        button.textContent = copied;
+        button.dataset.copiedState = "true";
+        window.setTimeout(() => {
+          button.textContent = original;
+          delete button.dataset.copiedState;
+        }, 1500);
+      } catch {
+        button.textContent = copyFailed;
+      }
+    });
+  }
+
+  const installTabs = [...document.querySelectorAll("[data-install-tab]")];
+  const installPanes = document.querySelectorAll("[data-install-pane]");
+  const activateInstallTab = (tab, focus = false) => {
+    const target = tab.dataset.installTab;
+    for (const item of installTabs) {
+      if (!(item instanceof HTMLButtonElement)) continue;
+      const active = item === tab;
+      item.classList.toggle("is-active", active);
+      item.setAttribute("aria-selected", String(active));
+      item.tabIndex = active ? 0 : -1;
+    }
+    for (const pane of installPanes) {
+      if (!(pane instanceof HTMLElement)) continue;
+      pane.hidden = pane.dataset.installPane !== target;
+    }
+    if (focus && tab instanceof HTMLButtonElement) tab.focus();
+  };
+  for (const tab of installTabs) {
+    if (!(tab instanceof HTMLButtonElement)) continue;
+    tab.addEventListener("click", () => activateInstallTab(tab));
+    tab.addEventListener("keydown", (event) => {
+      if (
+        event.key !== "ArrowLeft" &&
+        event.key !== "ArrowRight" &&
+        event.key !== "Home" &&
+        event.key !== "End"
+      ) {
+        return;
+      }
+      event.preventDefault();
+      const buttons = installTabs.filter(
+        (item) => item instanceof HTMLButtonElement,
+      );
+      const index = buttons.indexOf(tab);
+      let next = index;
+      if (event.key === "ArrowLeft") {
+        next = (index - 1 + buttons.length) % buttons.length;
+      } else if (event.key === "ArrowRight") {
+        next = (index + 1) % buttons.length;
+      } else if (event.key === "Home") {
+        next = 0;
+      } else if (event.key === "End") {
+        next = buttons.length - 1;
+      }
+      activateInstallTab(buttons[next], true);
+    });
+  }
+</script>
+
+<style>
+  .install-shell {
+    position: relative;
+    z-index: 1;
+    width: min(64rem, calc(100% - 2rem));
+    margin-inline: auto;
+    padding-top: 0.5rem;
+  }
+  .section-header-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+  .section-header-bar h2 {
+    margin: 0;
+    font: 700 1.15rem var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--fg-heading);
+  }
+  .section-meta-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .meta-pill-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.24rem 0.6rem;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--fg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-decoration: none;
+    box-shadow: var(--shadow-xs);
+  }
+  .meta-pill-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .install-dock {
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+  }
+  .install-dock-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--border-hairline);
+    background: var(--bg-subtle);
+  }
+  .dock-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--touch-target);
+    padding: 0.32rem 0.68rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    color: var(--fg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .dock-tab:hover {
+    color: var(--fg-primary);
+    background: var(--bg-elevated);
+  }
+  .dock-tab.is-active {
+    border-color: var(--accent-border);
+    background: var(--bg-surface);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: var(--shadow-xs);
+  }
+  .install-dock-pane {
+    padding: 1.1rem 1.25rem;
+  }
+  .install-dock-pane[hidden] {
+    display: none;
+  }
+  .dock-pane-meta {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .dock-pane-meta h3 {
+    margin: 0;
+    font: 600 0.92rem var(--font-display);
+    color: var(--fg-primary);
+  }
+  .dock-pane-summary {
+    margin: 0.2rem 0 0;
+    color: var(--fg-secondary);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+  .arch-chip {
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-xs);
+    padding: 0.1rem 0.45rem;
+    background: var(--bg-elevated);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    white-space: nowrap;
+  }
+  .command-stack {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .command-entry {
+    display: grid;
+    gap: 0.22rem;
+  }
+  .command-label {
+    margin: 0;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    text-transform: uppercase;
+  }
+  .command-block {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.58rem 0.78rem;
+    border: 1px solid var(--cmd-line);
+    border-radius: var(--radius-sm);
+    background: var(--cmd-bg);
+    color: var(--cmd-ink);
+  }
+  .command-block code {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    font: 0.76rem/1.55 var(--font-mono);
+  }
+  .command-block button {
+    flex-shrink: 0;
+    min-block-size: 1.5rem;
+    min-inline-size: 1.5rem;
+    border: 1px solid var(--cmd-line);
+    border-radius: var(--radius-xs);
+    padding: 0.24rem 0.58rem;
+    background: var(--cmd-panel);
+    color: var(--fg-secondary);
+    font: 600 0.66rem var(--font-mono);
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+  }
+  .command-block button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .command-block button[data-copied-state="true"] {
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+</style>
