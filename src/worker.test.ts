@@ -54,4 +54,23 @@ describe("Cloudflare Edge Geo-Locale Worker", () => {
     const botRes = await worker.fetch(botReq, makeEnv());
     expect(botRes.status).toBe(200);
   });
+
+  test("redirects www.komawm.org to apex https://komawm.org with 301 preserving path and query", async () => {
+    const rootReq = new Request("https://www.komawm.org/", {
+      headers: { "user-agent": "Mozilla/5.0" },
+    });
+    const rootRes = await worker.fetch(rootReq, makeEnv());
+    expect(rootRes.status).toBe(301);
+    expect(rootRes.headers.get("location")).toBe("https://komawm.org/");
+    expect(rootRes.headers.get("cache-control")).toBe("public, max-age=300");
+
+    const docsReq = new Request("https://WWW.KOMAWM.ORG/jiku/docs/?q=memory", {
+      headers: { "user-agent": "Googlebot/2.1" },
+    });
+    const docsRes = await worker.fetch(docsReq, makeEnv());
+    expect(docsRes.status).toBe(301);
+    expect(docsRes.headers.get("location")).toBe(
+      "https://komawm.org/jiku/docs/?q=memory",
+    );
+  });
 });
