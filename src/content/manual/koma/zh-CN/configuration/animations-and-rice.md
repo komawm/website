@@ -120,3 +120,38 @@ koma.macro.define({
     end,
 })
 ```
+
+### 智能体光标指示与多路点样条轨迹
+
+- **GLES2 SDF 智能体光标与 `LabelPill`（`koma.appearance({ agent_cursor = ... })`）**：可配置 `enabled`、`size`、`accent_color`、`trail_enabled`、`fog_enabled`、`ripple_enabled`、`label_enabled`、`idle_timeout_ms` 与 `idle_wobble`（`KomaAgentCursorSpec`）。智能体抓屏视图（`koma.capture`）会自动隔离排除智能体光标叠加层。
+- **多路点样条轨迹（`MacroContext:{move_path, stroke_path, path, settle_cursor}`）**：传入 `waypoints`（`KomaAnchorPoint[]`）与可选 `spline = "auto" | "catmull_rom" | "bezier"`（`KomaPathSplineKind`），采用向心式（$\alpha = 0.5$）Catmull-Rom 插值与 `250 Hz` 自适应子帧重采样；调用 `ctx:settle_cursor()` 可平滑停驻光标：
+
+```lua
+koma.appearance({
+    agent_cursor = {
+        enabled = true,
+        trail_enabled = true,
+        fog_enabled = true,
+        ripple_enabled = true,
+        label_enabled = true,
+    },
+})
+
+koma.macro.define({
+    id = "canvas.spline_stroke",
+    app_id = ".*",
+    description = "沿多路点执行向心 Catmull-Rom 样条平滑画笔拖拽",
+    run = function(ctx)
+        ctx:stroke_path({
+            spline = "catmull_rom",
+            button = "left",
+            waypoints = {
+                { anchor = "center", x = -120, y = -40 },
+                { anchor = "center", x = 0, y = -90 },
+                { anchor = "center", x = 140, y = 20 },
+            },
+        })
+        ctx:settle_cursor(false)
+    end,
+})
+```

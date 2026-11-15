@@ -14,6 +14,16 @@ dropbox_dir = "~/JikuBox"
 default_workspace = "agent:work"
 default_overlay = "grid_225"     # "grid_225" | "som" | "none"
 perceptual_hash_threshold = 4    # 重复画面去重的汉明距离阈值
+hover_glide_ms = 140             # 点击前指针平滑悬停滑动耗时（毫秒）
+
+[context]
+max_context_tokens = 8192        # 总 Token 预算上限（适配小上下文本地模型）
+reserved_output_tokens = 768
+min_output_tokens = 256
+compaction_trigger_ratio = 0.72
+image_token_estimate = 512
+keep_recent_images = 1
+a11y_max_entries_small_ctx = 28
 
 [providers.opencode_go]
 kind = "opencode_go"
@@ -55,10 +65,11 @@ fallback_to_primary_text_model = true
 | `probe_min_prob` | `0.15` | 探测阶段保留候选项的最低概率下限 |
 | `stop_sentinel` / `fallback_token` | `"stop_done"` / `"NONE_OR_OTHER"` | 序列结束标记与开放兜底选项 |
 
-## 桌面通知与可选语音合成（`[notify]` / `[tts]`）
+## 桌面通知、语音合成与虚拟形象舞台（`[notify]` / `[tts]` / `[avatar]`）
 
 - **桌面通知（`[notify]`）**：默认 `desktop_dbus = true`、`app_name = "Jiku"`，在 `task_completed`、`task_failed`、`verification_needed`、`skill_staged` 事件触发时通过 `org.freedesktop.Notifications` / `notify-send` 发送提醒。
-- **可选 TTS（`[tts]`，默认关闭）**：设置 `enabled = true` 后可选择 `provider = "voicevox"`（`http://127.0.0.1:50021`，`speaker_id = 3`）、`"openai_speech"` 或 `"noop"`。
+- **可选 TTS（`[tts]`，默认关闭）**：设置 `enabled = true` 后可选择 `provider = "espeak_ng" | "irodori" | "voicevox" | "openai_speech" | "noop"`、`voice` 与 `audio_sink`（`"auto"`、`"pw-play"`、`"aplay"`、`"silent"` 或自定义命令），支持 20 ms RMS 口型时间线提取与 `AudioPlaybackSink` 打断播放。
+- **伴侣虚拟形象舞台（`[avatar]`）**：`emit_cues = true` 与 `idle_gaze_follow_vseat = true` 通过 `jiku avatar serve` 推送 `Snapshot` / `AvatarCue` JSON 数据包并跟随活动 `vseat` 光标视线。
 
 ## Lua 策略配置（`~/.config/jiku/init.lua`）与 `jikud.service`
 

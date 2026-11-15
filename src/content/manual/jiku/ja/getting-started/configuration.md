@@ -14,6 +14,16 @@ dropbox_dir = "~/JikuBox"
 default_workspace = "agent:work"
 default_overlay = "grid_225"     # "grid_225" | "som" | "none"
 perceptual_hash_threshold = 4    # 重複フレーム判定のハミング距離しきい値
+hover_glide_ms = 140             # クリック前のカーソルホバー移動時間 (ms)
+
+[context]
+max_context_tokens = 8192        # 総トークン予算上限（小規模コンテキスト向け制御）
+reserved_output_tokens = 768
+min_output_tokens = 256
+compaction_trigger_ratio = 0.72
+image_token_estimate = 512
+keep_recent_images = 1
+a11y_max_entries_small_ctx = 28
 
 [providers.opencode_go]
 kind = "opencode_go"
@@ -55,10 +65,11 @@ fallback_to_primary_text_model = true
 | `probe_min_prob` | `0.15` | プローブ時に候補選択肢を保持する最小確率の下限 |
 | `stop_sentinel` / `fallback_token` | `"stop_done"` / `"NONE_OR_OTHER"` | 手順終了センチネルおよび未知選択肢用フォールバックトークン |
 
-## デスクトップ通知と任意 TTS（`[notify]` / `[tts]`）
+## デスクトップ通知・TTS・アバターステージ（`[notify]` / `[tts]` / `[avatar]`）
 
 - **デスクトップ通知（`[notify]`）**: 既定で `desktop_dbus = true`・`app_name = "Jiku"` となり、`task_completed`、`task_failed`、`verification_needed`、`skill_staged` 発生時に `org.freedesktop.Notifications` / `notify-send` で通知します。
-- **任意 TTS（`[tts]`、既定で無効）**: `enabled = true` にすると `provider = "voicevox"`（`http://127.0.0.1:50021`、`speaker_id = 3`）、`"openai_speech"`、`"noop"` を選択できます。
+- **任意 TTS（`[tts]`、既定で無効）**: `enabled = true` として `provider = "espeak_ng" | "irodori" | "voicevox" | "openai_speech" | "noop"`、`voice`、`audio_sink`（`"auto"`・`"pw-play"`・`"aplay"`・`"silent"` または任意コマンド）を選択できます。20 ms RMS のリップシンク音素タイムライン抽出と `AudioPlaybackSink` 割り込み再生を備えます。
+- **コンパニオンアバターステージ（`[avatar]`）**: `emit_cues = true` と `idle_gaze_follow_vseat = true` により、`jiku avatar serve` 経由で `Snapshot` / `AvatarCue` JSON パケット配信と `vseat` ポインタ追従視線制御を行います。
 
 ## Lua 設定（`~/.config/jiku/init.lua`）と `jikud.service`
 

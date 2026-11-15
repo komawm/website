@@ -508,10 +508,18 @@ function prepareMarkdownWithMathTokens(markdown: string): PreparedMarkdown {
   };
 }
 
+const CDN_VIDEO_URL_RE = /^https:\/\/cdn\.komawm\.org\/.+\.(mp4|webm)(?:[?#].*)?$/iu;
+
 function isMathBlockElement(node: HastNode): boolean {
   if (node.type !== "element" || node.tagName !== "div") return false;
   const classes = node.properties?.className;
   return Array.isArray(classes) && classes.includes("math-block");
+}
+
+function isVideoFigureElement(node: HastNode): boolean {
+  if (node.type !== "element" || node.tagName !== "figure") return false;
+  const classes = node.properties?.className;
+  return Array.isArray(classes) && classes.includes("doc-video");
 }
 
 function hasVisibleContent(nodes: HastNode[]): boolean {
@@ -520,6 +528,38 @@ function hasVisibleContent(nodes: HastNode[]): boolean {
       child.type !== "text" ||
       (typeof child.value === "string" && child.value.trim().length > 0),
   );
+}
+
+function splitParagraphOnBlocks(
+  node: HastNode,
+  isBlock: (child: HastNode) => boolean,
+): HastNode[] | null {
+  if (
+    node.type !== "element" ||
+    node.tagName !== "p" ||
+    !Array.isArray(node.children) ||
+    !node.children.some(isBlock)
+  ) {
+    return null;
+  }
+  const parts: HastNode[] = [];
+  let currentInline: HastNode[] = [];
+  const flushParagraph = (): void => {
+    if (hasVisibleContent(currentInline)) {
+      parts.push(hEl("p", currentInline, { ...node.properties }));
+    }
+    currentInline = [];
+  };
+  for (const child of node.children) {
+    if (isBlock(child)) {
+      flushParagraph();
+      parts.push(child);
+    } else {
+      currentInline.push(child);
+    }
+  }
+  flushParagraph();
+  return parts;
 }
 
 function expandMathInNodeList(
@@ -557,29 +597,9 @@ function expandMathInNodeList(
       node.children = expandMathInNodeList(node.children, tokenRe, tokens, childInCode);
     }
 
-    if (
-      node.type === "element" &&
-      node.tagName === "p" &&
-      "children" in node &&
-      Array.isArray(node.children) &&
-      node.children.some(isMathBlockElement)
-    ) {
-      let currentInline: HastNode[] = [];
-      const flushParagraph = (): void => {
-        if (hasVisibleContent(currentInline)) {
-          expanded.push(hEl("p", currentInline, { ...node.properties }));
-        }
-        currentInline = [];
-      };
-      for (const child of node.children) {
-        if (isMathBlockElement(child)) {
-          flushParagraph();
-          expanded.push(child);
-        } else {
-          currentInline.push(child);
-        }
-      }
-      flushParagraph();
+    const split = splitParagraphOnBlocks(node, isMathBlockElement);
+    if (split) {
+      expanded.push(...split);
       continue;
     }
 
@@ -604,6 +624,86 @@ function rehypeAstMath(prepared: PreparedMarkdown) {
       prepared.tokens,
       false,
     );
+  };
+}
+
+function createVideoFigure(node: HastNode): HastElement | null {
+  if (node.type !== "element" || node.tagName !== "img" || !node.properties) {
+    return null;
+  }
+  const src = node.properties.src;
+  if (typeof src !== "string") return null;
+  const match = src.match(CDN_VIDEO_URL_RE);
+  if (!match) return null;
+
+  const ext = (match[1] ?? "mp4").toLowerCase();
+  const mime = ext === "webm" ? "video/webm" : "video/mp4";
+  const alt = typeof node.properties.alt === "string" ? node.properties.alt.trim() : "";
+  const title =
+    typeof node.properties.title === "string" ? node.properties.title.trim() : "";
+
+  const videoProps: Record<string, unknown> = {
+    className: ["doc-video-player"],
+    controls: true,
+    playsInline: true,
+    preload: "metadata",
+  };
+  if (alt) {
+    videoProps.ariaLabel = alt;
+  }
+
+  const video = hEl(
+    "video",
+    [
+      hEl("source", [], { src, type: mime }),
+      hEl("a", [hText(alt || src)], { href: src }),
+    ],
+    videoProps,
+  );
+  const figureChildren: HastNode[] = [video];
+  if (title) {
+    figureChildren.push(
+      hEl("figcaption", [hText(title)], { className: ["doc-video-caption"] }),
+    );
+  }
+  return hEl("figure", figureChildren, { className: ["doc-video"] });
+}
+
+function transformCdnMediaInNodeList(nodes: HastNode[], inCode: boolean): HastNode[] {
+  const transformed: HastNode[] = [];
+  for (const node of nodes) {
+    if (!inCode) {
+      const figure = createVideoFigure(node);
+      if (figure) {
+        transformed.push(figure);
+        continue;
+      }
+    }
+
+    const childInCode =
+      inCode ||
+      (node.type === "element" && (node.tagName === "pre" || node.tagName === "code"));
+    if ("children" in node && Array.isArray(node.children)) {
+      node.children = transformCdnMediaInNodeList(node.children, childInCode);
+    }
+
+    const split = splitParagraphOnBlocks(node, isVideoFigureElement);
+    if (split) {
+      transformed.push(...split);
+      continue;
+    }
+
+    transformed.push(node);
+  }
+  return transformed;
+}
+
+function rehypeCdnMedia() {
+  return (tree: HastNode): void => {
+    if (!("children" in tree) || !Array.isArray(tree.children)) {
+      return;
+    }
+    tree.children = transformCdnMediaInNodeList(tree.children, false);
   };
 }
 
@@ -697,6 +797,7 @@ async function compileMarkdown(markdown: string): Promise<string> {
     .use(remarkAlert)
     .use(remarkRehype)
     .use(rehypeAstMath, prepared)
+    .use(rehypeCdnMedia)
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: "wrap" })
     .use(rehypeShiki, {

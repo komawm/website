@@ -24,12 +24,14 @@ Koma は `$XDG_RUNTIME_DIR/koma/<signature>/`（ディレクトリ権限 `0700`�
 ## 仮想シート（`vseat`）とゼロコピー `SCM_RIGHTS` キャプチャ
 
 - **ワークスペース分離仮想シート**：エージェントがリースしたワークスペースごとに独立した仮想ポインタ・キーボード・クリップボード状態を持ち、人間の物理 `seat0` のフォーカスやクリップボードに影響しません。
+- **高精度スプライン・`ClickGrab`・`LabelPill`**：`vseat.pointer_move`、`vseat.click`（`modifiers` と `label` 対応）、`vseat.drag` に加え、`vseat.path` / `vseat.stroke`（Smithay `ClickGrab` ドラッグ配送付き `250 Hz` 求心 Catmull-Rom / Bezier 再標本化）、`vseat.relative_move`、`vseat.wheel`、`vseat.hit_test`、`vseat.cursor_label`、`vseat.cursor_settle` を備えています。
+- **明示的な `DeliverySemantics`**：IPC エラーには構造化された `DeliveryDisposition`（`Unknown`、`NotDelivered`、`DeliveryUncertain`、`DeliveredUnverified`、`DeliveredVerified`）と `RetryDisposition`（`Safe`、`Unsafe`、`Unknown`）が付与され、安全に再試行できるかを判定できます。
 - **3 段階 `TextInjectStrategy`**：UTF-8 テキスト注入は `xkb_keymap`・`text_input_v3`・`clipboard`（`Ctrl+Shift+V`）を自動選択し、Fcitx5/IBus の変換候補ポップアップを誤作動させません。
 - **シール済み `SCM_RIGHTS` `memfd` / SHM**：`capture.frame` は RGBA8 ピクセルを書き込み禁止シール済みの `memfd`（Linux/FreeBSD）または POSIX 共有メモリ記述子（BSD フォールバック）に書き込み、`SCM_RIGHTS` 経由でファイルディスクリプタを渡すことで JSON への大きな画像コピーを避けます。
 
 ## `koma-mcp` stdio サーバー
 
-`koma-mcp` は `koma-agent.sock` を stdio JSON-RPC 2.0 の MCP ツールとして公開し、`Claude Code`・`Codex`・`Cursor`・`OpenCode`・[Jiku](/ja/jiku/) 等から利用できます。
+`koma-mcp` は `koma-agent.sock` へ遅延接続し、メッセージ単位で `Content-Length`（LSP 形式）と改行区切り JSON（`NDJSON`）の stdio フレーミングを自動判別します。`Claude Code`・`Codex`・`Cursor`・`OpenCode`・`pi`・[Jiku](/ja/jiku/) 等からそのまま利用できます：
 
 ```bash
 # 組み込み MCP ツールスキーマをオフライン表示
@@ -42,4 +44,4 @@ KOMA_CAPABILITY_TOKEN=koma_cap_... koma-mcp
 koma-mcp --auto-mint-admin
 ```
 
-組み込みツール：`koma_scene_inventory`、`koma_ws_create`、`koma_capture_frame`、`koma_click`、`koma_drag`、`koma_key`、`koma_inject_text`、`koma_paste_mime`、`koma_win_activate`、`koma_exec_macro`、および `~/.config/koma/init.lua` の `koma.macro.define(...)` で登録された `macro__<id>` ツール。
+組み込み `koma-mcp` は 17 個のコアツール（`koma_ping`、`koma_scene_inventory`、`koma_ws_create`、`koma_capture_frame`、`koma_click`、`koma_drag`、`koma_key`、`koma_inject_text`、`koma_paste_mime`、`koma_win_activate`、`koma_exec_macro`、`koma_path`、`koma_cursor_settle`、`koma_wheel`、`koma_relative_move`、`koma_hit_test`、`koma_cursor_label`）と、`~/.config/koma/init.lua` の `koma.macro.define(...)` で登録された `macro__<id>` ツールを公開します。

@@ -3,7 +3,7 @@
 > [!TIP]
 > Koma 内置完整的 Hyprland 风格默认快捷键表（默认 `inherit_default_binds = true`）。即使尚未创建 `~/.config/koma/init.lua`，启动后也能直接打开终端、平铺或浮动窗口、切换工作区以及重载配置。
 
-![Koma 默认 Dwindle 平铺工作区](/media/koma-dwindle.webp)
+![Koma 默认 Dwindle 平铺工作区](https://cdn.komawm.org/media/koma-dwindle.webp)
 
 ## 启动模式（`koma [OPTIONS]`）
 

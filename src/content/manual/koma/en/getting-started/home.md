@@ -3,7 +3,9 @@
 > [!NOTE]
 > Koma is a standalone, keyboard-driven Wayland tiling compositor. You can install and run Koma daily without any AI tools or companion daemons—[Jiku](/jiku/) is completely optional.
 
-![Koma running in the default dwindle tiling layout](/media/koma-dwindle.webp)
+![Koma running in the default dwindle tiling layout](https://cdn.komawm.org/media/koma-dwindle.webp)
+
+![Koma tiling, scrolling, and overview showcase](https://cdn.komawm.org/media/koma-tiling.mp4 "Koma Dwindle tiling, scrolling strip, and Super + Tab overview recording.")
 
 ## Key Capabilities
 
@@ -11,6 +13,7 @@
 2. **Per-Workspace Layouts & Visual Effects**: Choose `"dwindle"` (default on headed workspaces), `"scrolling"` (horizontal column strip), `"deck"` (monocle viewport with background stash), or `"bsp"` per workspace, with Dual-Kawase blur, rounded corners, drop shadows, focus rings, and spring animations.
 3. **Human-First Preemption (`< 1 ms`)**: Any physical keyboard or pointer input—or pressing `Mod + G`—immediately revokes active automation leases and rejects stale IPC writes via monotonic `Epoch` counters (`4091 ERR_HUMAN_PREEMPTED`).
 4. **Built-In Sandboxing & Scoped IPC**: Separates full administrator control (`koma-admin.sock`) from token-scoped automation (`koma-agent.sock`), and supports isolated workspaces via `komactl sandbox` (`bwrap` / rootless `podman`) and `wp_security_context_manager_v1`.
+5. **High-Precision Agent Pointer & 17-Tool MCP**: Drives `250 Hz` multi-waypoint `vseat.path` / `vseat.stroke` splines with Smithay `ClickGrab` drag delivery, a GLES2 SDF agent cursor + `LabelPill` indicator (`label_enabled`), `DeliverySemantics` error reporting, and lazy-connect dual-framing (`Content-Length` + NDJSON) `koma-mcp`.
 
 ## Documentation Map
 

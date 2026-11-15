@@ -2,7 +2,7 @@
 
 `~/.config/koma/init.lua` 向けの LuaLS 補完・ホバードキュメント・型チェックは、`komactl gen-types` および `Apache-2.0` リポジトリ [komawm/koma-types](https://github.com/komawm/koma-types) で提供されています。
 
-![Dwindle レイアウトでの ~/.config/koma/init.lua 編集と komactl の使用例](/media/koma-dwindle.webp "Dwindle タイルレイアウト上で ~/.config/koma/init.lua と komactl を使う画面例。")
+![Dwindle レイアウトでの ~/.config/koma/init.lua 編集と komactl の使用例](https://cdn.komawm.org/media/koma-dwindle.webp "Dwindle タイルレイアウト上で ~/.config/koma/init.lua と komactl を使う画面例。")
 
 ## `types/koma.lua` の生成または取得
 
@@ -44,3 +44,8 @@ Koma をアップグレードした際は `komactl gen-types > ~/.config/koma/ty
 - **Zed / VS Code（`sumneko.lua`）**：`~/.config/koma` フォルダをワークスペースとして開くと、`koma.layout`・`koma.monitor`・`koma.input`・`koma.appearance`・`koma.rule.*`・`koma.macro.*`・`koma.act.*` の補完が即座に有効になります。
 
 `komawm/koma-types` に公開されているスタブは Lua 5.4（`luac -p`）で構文検証され、`komactl gen-types` の出力と一致することが確認されています。
+
+### `v0.0.1` の主な追加型
+
+- **`KomaAgentCursorSpec` と `KomaAppearanceSpec.agent_cursor`**：`enabled?`・`size?`・`accent_color?`・`trail_enabled?`・`fog_enabled?`・`ripple_enabled?`・`label_enabled?`・`idle_timeout_ms?`・`idle_wobble?` を追加しました。
+- **軌道・パス型**：`KomaPathSplineKind`（`"auto" | "catmull_rom" | "bezier"`）、`KomaPathSpec`、`MacroContext:{move_path, stroke_path, path, settle_cursor}` を追加しました。

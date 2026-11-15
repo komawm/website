@@ -2,7 +2,7 @@
 
 Jiku はセッション状態とローカル全文履歴を `~/.local/state/jiku/state.db` に保存し、生成されたスキルはすべて人間のレビューを経てから有効化します。
 
-![Koma 端末で Jiku の履歴検索とスキル状態を確認する様子](/media/jiku-terminal.webp "端末から Jiku のメモリ検索結果とスキル一覧を確認した画面。")
+![Koma 端末で Jiku の履歴検索とスキル状態を確認する様子](https://cdn.komawm.org/media/jiku-terminal.webp "端末から Jiku のメモリ検索結果とスキル一覧を確認した画面。")
 
 ## ローカルメモリ階層
 
@@ -26,3 +26,14 @@ Jiku はセッション状態とローカル全文履歴を `~/.local/state/jiku
    ```bash
    jiku skills approve <skill_id>
    ```
+
+## 小コンテキスト予算と 4 段階コンパクションウォーターフォール
+
+`llama-server` 上の `Qwen3VL-2B-Instruct-Q4_K_M` のような `4096`–`8192` トークンの小規模ローカルモデル向けに、プロンプト見積りが `compaction_trigger_ratio`（`0.72`）を超えると `context_budget` が決定論的な 4 段階圧縮を実行し、`min_output_tokens`（`256`）〜 `reserved_output_tokens`（`768`）の出力余白を確保します：
+
+1. **`stage1_visual_roi_pruning`**: 最新の `keep_recent_images`（`1`）枚のみを残し（1 枚あたり `image_token_estimate = 512`）、古いスクリーンショットを破棄します。
+2. **`stage2_a11y_skeleton_folding`**: 冗長な AT-SPI2 サブツリーを最も関連性の高い上位 `a11y_max_entries_small_ctx`（`28`）個の操作可能 `@snap:eN` ノードへ要約します。
+3. **`stage3_episodic_l1_folding`**: 古い会話ターンを圧縮し、`[context]`・`[cursor]`・`[a11y]` グラウンディングヘッダを保持したまま `l1_app_quirks` / L2 履歴抜粋をトリミングします。
+4. **出力予約トークン数のクランプ**: 残余ヘッドルーム（`64` トークン）の内側へ `max_output_tokens` を安全にクランプします。
+
+`jiku context inspect` でオフライン検証でき、`4096` トークン予算の実測では `5031` トークンの入力を `2943` トークンへ圧縮しました（`clamped_max_output_tokens = 768`、`dropped_images = 2`、`truncated_a11y_nodes = 36`）。

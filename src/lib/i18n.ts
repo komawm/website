@@ -141,22 +141,22 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
     ],
     komaShowcase: [
       {
-        image: "/media/koma-dwindle.webp",
-        videoWebm: "/media/koma-tiling.webm",
-        videoMp4: "/media/koma-tiling.mp4",
+        image: "https://cdn.komawm.org/media/koma-dwindle.webp",
+        videoWebm: "https://cdn.komawm.org/media/koma-tiling.webm",
+        videoMp4: "https://cdn.komawm.org/media/koma-tiling.mp4",
         featured: true,
         title: "Live Session: Dwindle, Scrolling & Overview",
         caption:
           "Opening terminals in dwindle tiling, switching to a horizontal scrolling strip on workspace 5, and opening koma-overview.",
       },
       {
-        image: "/media/koma-scrolling.webp",
+        image: "https://cdn.komawm.org/media/koma-scrolling.webp",
         title: "Scrolling Column Strip",
         caption:
           "Wide columns arranged along a horizontal strip with live keyboard navigation.",
       },
       {
-        image: "/media/koma-overview.webp",
+        image: "https://cdn.komawm.org/media/koma-overview.webp",
         title: "Workspace Overview",
         caption: "Thumbnail grid across active workspaces triggered with Super + Tab.",
       },
@@ -189,16 +189,16 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
     ],
     jikuShowcase: [
       {
-        image: "/media/jiku-paint.webp",
-        videoWebm: "/media/jiku-paint.webm",
-        videoMp4: "/media/jiku-paint.mp4",
+        image: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-final-3passes.webp",
+        videoWebm: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.webm",
+        videoMp4: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.mp4",
         featured: true,
         title: "Live Session: Autonomous Canvas Painting",
         caption:
-          "Recorded in QEMU: Jiku holds a leased workspace (purple border) and paints a multi-step scene using virtual pointer drags.",
+          "Uncut 1.00x QEMU session: Jiku holds a leased workspace (purple border) and paints a 3-pass coastal scene with spline pointer paths and visual self-checks.",
       },
       {
-        image: "/media/jiku-terminal.webp",
+        image: "https://cdn.komawm.org/media/jiku-terminal.webp",
         title: "Daemon Status & Task Memory",
         caption:
           "Live output from `jiku status`, `jiku validate-config`, and `jiku memory search` on a tiled workspace.",
@@ -265,21 +265,21 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
     ],
     komaShowcase: [
       {
-        image: "/media/koma-dwindle.webp",
-        videoWebm: "/media/koma-tiling.webm",
-        videoMp4: "/media/koma-tiling.mp4",
+        image: "https://cdn.komawm.org/media/koma-dwindle.webp",
+        videoWebm: "https://cdn.komawm.org/media/koma-tiling.webm",
+        videoMp4: "https://cdn.komawm.org/media/koma-tiling.mp4",
         featured: true,
         title: "实机录屏：平铺、横向滚动与工作区概览",
         caption:
           "在 Dwindle 布局中打开多个终端、切换至工作区 5 的横向滚动带，并按 Super + Tab 调出概览视图。",
       },
       {
-        image: "/media/koma-scrolling.webp",
+        image: "https://cdn.komawm.org/media/koma-scrolling.webp",
         title: "横向滚动工作区",
         caption: "宽列窗口沿水平条带排布，可通过快捷键在列间快速切换和调整宽度。",
       },
       {
-        image: "/media/koma-overview.webp",
+        image: "https://cdn.komawm.org/media/koma-overview.webp",
         title: "全局工作区概览",
         caption: "按 Super + Tab 显示所有活跃工作区的实时缩略图网格。",
       },
@@ -312,16 +312,16 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
     ],
     jikuShowcase: [
       {
-        image: "/media/jiku-paint.webp",
-        videoWebm: "/media/jiku-paint.webm",
-        videoMp4: "/media/jiku-paint.mp4",
+        image: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-final-3passes.webp",
+        videoWebm: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.webm",
+        videoMp4: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.mp4",
         featured: true,
-        title: "实机录屏：驱动画板完成风景绘制",
+        title: "实机录屏：驱动画板完成三轮风景绘制",
         caption:
-          "QEMU 虚拟机实测录屏：Jiku 持有紫色控制租约边框，分两轮拖拽鼠标完成风景画作。",
+          "QEMU 虚拟机 1.00x 无剪辑实录：Jiku 持有紫色控制租约边框，通过高精样条轨迹与视觉自检分三轮完成海景画作。",
       },
       {
-        image: "/media/jiku-terminal.webp",
+        image: "https://cdn.komawm.org/media/jiku-terminal.webp",
         title: "运行状态与任务检索",
         caption:
           "平铺工作区下运行 `jiku status`、`jiku validate-config` 与 `jiku memory search` 的实机截图。",
@@ -388,21 +388,21 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
     ],
     komaShowcase: [
       {
-        image: "/media/koma-dwindle.webp",
-        videoWebm: "/media/koma-tiling.webm",
-        videoMp4: "/media/koma-tiling.mp4",
+        image: "https://cdn.komawm.org/media/koma-dwindle.webp",
+        videoWebm: "https://cdn.komawm.org/media/koma-tiling.webm",
+        videoMp4: "https://cdn.komawm.org/media/koma-tiling.mp4",
         featured: true,
         title: "実機録画: タイル配置・横スクロール・概観",
         caption:
           "Dwindle での端末配置、ワークスペース 5 の横スクロール表示、Super + Tab によるワークスペース概観の流れです。",
       },
       {
-        image: "/media/koma-scrolling.webp",
+        image: "https://cdn.komawm.org/media/koma-scrolling.webp",
         title: "横スクロールストリップ",
         caption: "ワイド画面向けに対象ウィンドウを中央へ寄せて水平移動できます。",
       },
       {
-        image: "/media/koma-overview.webp",
+        image: "https://cdn.komawm.org/media/koma-overview.webp",
         title: "ワークスペース概観",
         caption: "Super + Tab で稼働中の全ワークスペースをサムネイル一覧で表示します。",
       },
@@ -435,16 +435,16 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
     ],
     jikuShowcase: [
       {
-        image: "/media/jiku-paint.webp",
-        videoWebm: "/media/jiku-paint.webm",
-        videoMp4: "/media/jiku-paint.mp4",
+        image: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-final-3passes.webp",
+        videoWebm: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.webm",
+        videoMp4: "https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.mp4",
         featured: true,
-        title: "実機録画: キャンバス描画タスク",
+        title: "実機録画: キャンバス 3 段階描画タスク",
         caption:
-          "QEMU 環境での実測映像: 紫色リース枠を保持したまま仮想ポインタ操作で風景画を仕上げています。",
+          "QEMU 環境での等速無編集録画: 紫色リース枠を保持したままスプライン軌道と視覚確認を 3 ラウンド重ねて風景画を仕上げています。",
       },
       {
-        image: "/media/jiku-terminal.webp",
+        image: "https://cdn.komawm.org/media/jiku-terminal.webp",
         title: "デーモン状態と履歴検索",
         caption:
           "タイル配置の端末で `jiku status`・`jiku validate-config`・`jiku memory search` を実行した画面です。",

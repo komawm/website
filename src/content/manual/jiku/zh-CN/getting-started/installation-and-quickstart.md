@@ -3,7 +3,7 @@
 > [!NOTE]
 > 安装 Jiku 完全可选。[Koma](/zh-CN/docs/getting-started/installation/) 无需 `jikud` 或 `jiku` 即可作为纯 Wayland 平铺合成器独立运行。
 
-![在 Koma 终端中执行 jiku 状态检查](/media/jiku-terminal.webp "在 Koma 终端中检查 Jiku 状态并运行命令行工具。")
+![在 Koma 终端中执行 jiku 状态检查](https://cdn.komawm.org/media/jiku-terminal.webp "在 Koma 终端中检查 Jiku 状态并运行命令行工具。")
 
 ## 安装 `jikud` 与 `jiku`
 
@@ -63,11 +63,35 @@ cargo +1.100.0 build --release --locked -p jikud -p jiku
    jikud --daemon &
    jiku status --json
    ```
-4. **先试跑 Dry-Run 任务**：
+4. **先试跑 Dry-Run 任务与本地诊断**：
    ```bash
    jiku run --dry-run "Open a terminal and check uname -a"
+   jiku a11y snapshot --json
+   jiku context inspect --max-tokens 4096
+   jiku tts say "Jiku is ready"
+   jiku avatar serve --bind 127.0.0.1:4190
+   jiku bench run --offline
    ```
 
-## 接入外部编码智能体（`Claude Code`、`Codex`、`OpenCode`、`Cursor`）
+## 接入外部编码智能体（`Claude Code`、`Codex`、`OpenCode`、`pi`、`Cursor`）
 
-在编码智能体的 MCP 配置中注册 `jiku mcp`（stdio MCP 服务），或让其读取 `jiku/skills/SKILL.md`，即可在 Koma 的 Epoch 隔离保护下调用 `jiku run`、`jiku decide`、`jiku box classify` 与 `jiku memory search`。
+`jiku mcp`（12 个编排工具）与 `koma-mcp`（17 个合成器工具）均会在每条消息边界自动识别 `Content-Length` 与 `NDJSON` stdio 帧格式。可在 `Claude Code`、`Codex`、`Cursor`、`pi` 或 OpenCode（`~/.config/opencode/opencode.json`）中注册接入：
+
+```json
+{
+  "mcp": {
+    "koma": {
+      "type": "local",
+      "command": ["koma-mcp", "--auto-mint-admin"],
+      "enabled": true
+    },
+    "jiku": {
+      "type": "local",
+      "command": ["jiku", "mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+也可以让编码智能体读取 `jiku/skills/SKILL.md`，在 Koma 的 Epoch 隔离保护下调用 `jiku run`、`jiku decide`、`jiku a11y`、`jiku context inspect`、`jiku box classify` 与 `jiku memory search`。

@@ -2,7 +2,7 @@
 
 Editor autocompletion, hover documentation, and option diagnostics for `~/.config/koma/init.lua` are provided by `komactl gen-types` and the `Apache-2.0` stub repository [komawm/koma-types](https://github.com/komawm/koma-types).
 
-![Editing ~/.config/koma/init.lua with komactl and Dwindle tiling](/media/koma-dwindle.webp "Dwindle tiling layout alongside ~/.config/koma/init.lua and komactl.")
+![Editing ~/.config/koma/init.lua with komactl and Dwindle tiling](https://cdn.komawm.org/media/koma-dwindle.webp "Dwindle tiling layout alongside ~/.config/koma/init.lua and komactl.")
 
 ## Generating or Cloning `types/koma.lua`
 
@@ -44,3 +44,8 @@ If you cloned `komawm/koma-types` instead, set `"workspace.library"` to `["~/.lo
 - **Zed / VS Code (`sumneko.lua`)**: Open `~/.config/koma` as the workspace folder to enable completion across `koma.layout`, `koma.monitor`, `koma.input`, `koma.appearance`, `koma.rule.*`, `koma.macro.*`, and `koma.act.*`.
 
 Published stubs in `komawm/koma-types` are checked against `luac -p` (Lua 5.4) and matched to `komactl gen-types` output.
+
+### Highlights in `v0.0.1`
+
+- **`KomaAgentCursorSpec` & `KomaAppearanceSpec.agent_cursor`**: Adds `enabled?`, `size?`, `accent_color?`, `trail_enabled?`, `fog_enabled?`, `ripple_enabled?`, `label_enabled?`, `idle_timeout_ms?`, and `idle_wobble?`.
+- **Trajectory & Path Types**: Adds `KomaPathSplineKind` (`"auto" | "catmull_rom" | "bezier"`), `KomaPathSpec`, and `MacroContext:{move_path, stroke_path, path, settle_cursor}`.

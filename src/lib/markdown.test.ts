@@ -54,4 +54,29 @@ describe("markdown Shiki external token classes and AST MathML", () => {
     // Ensure <div class="math-block"> is never nested illegally inside <p>
     expect(html).not.toMatch(/<p>[^<]*<div class="math-block">/u);
   });
+
+  test("transforms CDN .mp4 and .webm image embeds into figure/video blocks without style attributes", async () => {
+    const md = [
+      "# Demo",
+      "",
+      '![Uncut painting recording](https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.mp4 "Caption text")',
+      "",
+      "![WebM recording](https://cdn.komawm.org/media/koma-tiling.webm)",
+    ].join("\n");
+
+    const html = await renderMarkdownToHtml(md);
+    expect(html).toContain('<figure class="doc-video">');
+    expect(html).toContain('<video class="doc-video-player"');
+    expect(html).toContain(
+      '<source src="https://cdn.komawm.org/media/v0.0.1/jiku-paint-realtime-uncut.mp4" type="video/mp4">',
+    );
+    expect(html).toContain(
+      '<source src="https://cdn.komawm.org/media/koma-tiling.webm" type="video/webm">',
+    );
+    expect(html).toContain(
+      '<figcaption class="doc-video-caption">Caption text</figcaption>',
+    );
+    expect(html).not.toMatch(/<p>[^<]*<figure class="doc-video">/u);
+    expect(html).not.toMatch(/\sstyle=/iu);
+  });
 });

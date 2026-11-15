@@ -120,3 +120,38 @@ koma.macro.define({
     end,
 })
 ```
+
+### Agent Cursor Indicator & Multi-Waypoint Splines
+
+- **GLES2 SDF Agent Cursor & `LabelPill` (`koma.appearance({ agent_cursor = ... })`)**: Configure `enabled`, `size`, `accent_color`, `trail_enabled`, `fog_enabled`, `ripple_enabled`, `label_enabled`, `idle_timeout_ms`, and `idle_wobble` (`KomaAgentCursorSpec`). Agent cursor overlays are excluded automatically from agent screenshot captures (`koma.capture`).
+- **Multi-Waypoint Splines (`MacroContext:{move_path, stroke_path, path, settle_cursor}`)**: Supply `waypoints` (`KomaAnchorPoint[]`) and optional `spline = "auto" | "catmull_rom" | "bezier"` (`KomaPathSplineKind`) evaluated with centripetal ($\alpha = 0.5$) Catmull-Rom interpolation and `250 Hz` adaptive sub-frame resampling, then call `ctx:settle_cursor()` to park the cursor smoothly:
+
+```lua
+koma.appearance({
+    agent_cursor = {
+        enabled = true,
+        trail_enabled = true,
+        fog_enabled = true,
+        ripple_enabled = true,
+        label_enabled = true,
+    },
+})
+
+koma.macro.define({
+    id = "canvas.spline_stroke",
+    app_id = ".*",
+    description = "Draw a smooth centripetal Catmull-Rom stroke across waypoints",
+    run = function(ctx)
+        ctx:stroke_path({
+            spline = "catmull_rom",
+            button = "left",
+            waypoints = {
+                { anchor = "center", x = -120, y = -40 },
+                { anchor = "center", x = 0, y = -90 },
+                { anchor = "center", x = 140, y = 20 },
+            },
+        })
+        ctx:settle_cursor(false)
+    end,
+})
+```

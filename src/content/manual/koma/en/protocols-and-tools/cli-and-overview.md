@@ -49,7 +49,7 @@ komactl sandbox run --with-agent-sock --ro-bind ~/repo:/workspace -- code-oss
 
 ## Spatial Overview (`koma-overview`)
 
-![koma-overview spatial workspace switcher](/media/koma-overview.webp)
+![koma-overview spatial workspace switcher](https://cdn.komawm.org/media/koma-overview.webp)
 
 Toggle `koma-overview` via `Mod + Tab` (or bind `koma.act.overview.toggle()`):
 

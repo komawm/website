@@ -2,7 +2,7 @@
 
 Jiku stores session state and full-text local history in `~/.local/state/jiku/state.db` and gates every generated skill behind human review.
 
-![Searching local Jiku history and checking skills in a Koma terminal](/media/jiku-terminal.webp "Inspecting Jiku memory search output and skill status from a terminal.")
+![Searching local Jiku history and checking skills in a Koma terminal](https://cdn.komawm.org/media/jiku-terminal.webp "Inspecting Jiku memory search output and skill status from a terminal.")
 
 ## Local Memory Layers
 
@@ -26,3 +26,14 @@ When `stage_new_skills = true`, Jiku can propose reusable Lua or Markdown SOP sk
    ```bash
    jiku skills approve <skill_id>
    ```
+
+## Small-Context Budget & 4-Stage Compaction Waterfall
+
+For compact local models (`4096`–`8192` token windows such as `Qwen3VL-2B-Instruct-Q4_K_M` on `llama-server`), `context_budget` applies a deterministic compaction waterfall whenever prompt estimates cross `compaction_trigger_ratio` (`0.72`) while preserving `min_output_tokens` (`256`)–`reserved_output_tokens` (`768`):
+
+1. **`stage1_visual_roi_pruning`**: Keeps only the newest `keep_recent_images` (`1`) screenshots (`image_token_estimate = 512`), dropping stale historical frames.
+2. **`stage2_a11y_skeleton_folding`**: Folds verbose AT-SPI2 subtrees down to the `a11y_max_entries_small_ctx` (`28`) most relevant interactive `@snap:eN` nodes.
+3. **`stage3_episodic_l1_folding`**: Compacts older conversational turns and trims `l1_app_quirks` / L2 memory snippets while keeping the `[context]`, `[cursor]`, and `[a11y]` grounding headers intact.
+4. **Output Reservation Clamping**: Clamps `max_output_tokens` cleanly inside the remaining safety headroom (`64` tokens).
+
+Inspect compaction decisions offline via `jiku context inspect`: a verified `4096`-token budget run compacted a `5031`-token payload down to `2943` tokens (`clamped_max_output_tokens = 768`, `dropped_images = 2`, `truncated_a11y_nodes = 36`).

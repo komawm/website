@@ -2,7 +2,7 @@
 
 Koma は `~/.config/koma/init.lua`（または `$XDG_CONFIG_HOME/koma/init.lua`、フォールバックは `/etc/xdg/koma/init.lua`）から設定を読み込みます。環境変数 `KOMA_CONFIG` または `koma -c <path>` で設定ファイルを切り替えられるほか、`~/.config/koma/lua/` 配下に分割したモジュールを `require(...)` で読み込めます。
 
-![Koma 横スクロールレイアウトと Lua 設定のプレビュー](/media/koma-scrolling.webp "Scrolling レイアウトのマルチカラム表示とステータスバーの例。")
+![Koma 横スクロールレイアウトと Lua 設定のプレビュー](https://cdn.komawm.org/media/koma-scrolling.webp "Scrolling レイアウトのマルチカラム表示とステータスバーの例。")
 
 ## 検証と安全なリロード
 

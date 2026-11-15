@@ -14,6 +14,16 @@ dropbox_dir = "~/JikuBox"
 default_workspace = "agent:work"
 default_overlay = "grid_225"     # "grid_225" | "som" | "none"
 perceptual_hash_threshold = 4    # Duplicate frame Hamming distance threshold
+hover_glide_ms = 140             # Pre-click cursor hover glide duration (ms)
+
+[context]
+max_context_tokens = 8192        # Total token budget (clamp small models cleanly)
+reserved_output_tokens = 768
+min_output_tokens = 256
+compaction_trigger_ratio = 0.72
+image_token_estimate = 512
+keep_recent_images = 1
+a11y_max_entries_small_ctx = 28
 
 [providers.opencode_go]
 kind = "opencode_go"
@@ -55,10 +65,11 @@ Spatial grid dimensions and decision thresholds are configured under `[decision_
 | `probe_min_prob` | `0.15` | Minimum probability floor for retaining candidate choices while probing |
 | `stop_sentinel` / `fallback_token` | `"stop_done"` / `"NONE_OR_OTHER"` | Sequence completion sentinel and open-world fallback token |
 
-## Notifications & Optional TTS (`[notify]` / `[tts]`)
+## Notifications, TTS & Avatar Stage (`[notify]` / `[tts]` / `[avatar]`)
 
 - **Desktop Notifications (`[notify]`)**: `desktop_dbus = true`, `app_name = "Jiku"`, `notify_on = ["task_completed", "task_failed", "verification_needed", "skill_staged"]` dispatches notifications via `org.freedesktop.Notifications` / `notify-send`.
-- **Optional TTS (`[tts]`, disabled by default)**: Set `enabled = true` and choose `provider = "voicevox"` (`http://127.0.0.1:50021`, `speaker_id = 3`), `"openai_speech"`, or `"noop"`.
+- **Optional TTS (`[tts]`, disabled by default)**: Set `enabled = true` and choose `provider = "espeak_ng" | "irodori" | "voicevox" | "openai_speech" | "noop"`, `voice`, and `audio_sink` (`"auto"`, `"pw-play"`, `"aplay"`, `"silent"`, or custom command). Generates 20 ms RMS lip-sync vowel cues and supports barge-in interruption via `AudioPlaybackSink`.
+- **Companion Avatar Stage (`[avatar]`)**: `emit_cues = true` and `idle_gaze_follow_vseat = true` stream `Snapshot` / `AvatarCue` JSON packets and track active `vseat` pointer coordinates over `jiku avatar serve`.
 
 ## Lua Configuration (`~/.config/jiku/init.lua`) & `jikud.service`
 

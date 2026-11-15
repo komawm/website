@@ -49,7 +49,7 @@ komactl sandbox run --with-agent-sock --ro-bind ~/repo:/workspace -- code-oss
 
 ## 空間ワークスペース概観（`koma-overview`）
 
-![koma-overview 空間ワークスペーススイッチャー](/media/koma-overview.webp)
+![koma-overview 空間ワークスペーススイッチャー](https://cdn.komawm.org/media/koma-overview.webp)
 
 `Mod + Tab`（または `koma.act.overview.toggle()` のキーバインド）で `koma-overview` を表示します：
 

@@ -3,7 +3,7 @@
 > [!TIP]
 > Koma ships a complete Hyprland-compatible default keybinding table (`inherit_default_binds = true` by default). You can launch Koma with **no `~/.config/koma/init.lua`** and immediately open terminals, tile or float windows, switch workspaces, and reload config.
 
-![Koma default dwindle tiling workspace](/media/koma-dwindle.webp)
+![Koma default dwindle tiling workspace](https://cdn.komawm.org/media/koma-dwindle.webp)
 
 ## Launch Modes (`koma [OPTIONS]`)
 

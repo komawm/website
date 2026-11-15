@@ -2,7 +2,7 @@
 
 `~/.config/koma/init.lua` 的 LuaLS 自动补全、悬停提示与字段诊断由 `komactl gen-types` 和 `Apache-2.0` 开源仓库 [komawm/koma-types](https://github.com/komawm/koma-types) 提供。
 
-![在 Dwindle 平铺布局中配合 komactl 编辑 ~/.config/koma/init.lua](/media/koma-dwindle.webp "Dwindle 布局下编辑 ~/.config/koma/init.lua 与使用 komactl 的示例。")
+![在 Dwindle 平铺布局中配合 komactl 编辑 ~/.config/koma/init.lua](https://cdn.komawm.org/media/koma-dwindle.webp "Dwindle 布局下编辑 ~/.config/koma/init.lua 与使用 komactl 的示例。")
 
 ## 生成或克隆 `types/koma.lua`
 
@@ -44,3 +44,8 @@ git clone --depth 1 https://github.com/komawm/koma-types.git ~/.local/share/koma
 - **Zed / VS Code（`sumneko.lua`）**：以文件夹形式打开 `~/.config/koma`，即可获得 `koma.layout`、`koma.monitor`、`koma.input`、`koma.appearance`、`koma.rule.*`、`koma.macro.*` 与 `koma.act.*` 的完整补全提示。
 
 [komawm/koma-types](https://github.com/komawm/koma-types) 发布的存根文件均经过 Lua 5.4（`luac -p`）语法检查，并与 `komactl gen-types` 输出保持一致。
+
+### `v0.0.1` 新增类型亮点
+
+- **`KomaAgentCursorSpec` 与 `KomaAppearanceSpec.agent_cursor`**：新增 `enabled?`、`size?`、`accent_color?`、`trail_enabled?`、`fog_enabled?`、`ripple_enabled?`、`label_enabled?`、`idle_timeout_ms?` 与 `idle_wobble?` 字段。
+- **轨迹与路径类型**：新增 `KomaPathSplineKind`（`"auto" | "catmull_rom" | "bezier"`）、`KomaPathSpec` 与 `MacroContext:{move_path, stroke_path, path, settle_cursor}`。

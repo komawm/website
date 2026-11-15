@@ -3,7 +3,7 @@
 > [!NOTE]
 > Jiku の導入は任意です。[Koma](/ja/docs/getting-started/installation/) は `jikud` や `jiku` がなくてもスタンドアロンの Wayland タイル型コンポジタとして動作します。
 
-![Koma の端末上で jiku CLI チェックを実行している様子](/media/jiku-terminal.webp "Koma の端末上で Jiku の状態確認と CLI コマンドを実行した画面。")
+![Koma の端末上で jiku CLI チェックを実行している様子](https://cdn.komawm.org/media/jiku-terminal.webp "Koma の端末上で Jiku の状態確認と CLI コマンドを実行した画面。")
 
 ## `jikud` と `jiku` のインストール
 
@@ -63,11 +63,35 @@ cargo +1.100.0 build --release --locked -p jikud -p jiku
    jikud --daemon &
    jiku status --json
    ```
-4. **ドライランタスクで動作確認**:
+4. **ドライランタスクとローカル診断の確認**:
    ```bash
    jiku run --dry-run "Open a terminal and check uname -a"
+   jiku a11y snapshot --json
+   jiku context inspect --max-tokens 4096
+   jiku tts say "Jiku is ready"
+   jiku avatar serve --bind 127.0.0.1:4190
+   jiku bench run --offline
    ```
 
-## 外部コーディングエージェント連携（`Claude Code`・`Codex`・`OpenCode`・`Cursor`）
+## 外部コーディングエージェント連携（`Claude Code`・`Codex`・`OpenCode`・`pi`・`Cursor`）
 
-コーディングエージェントへ `jiku mcp`（stdio MCP サーバー）を登録するか `jiku/skills/SKILL.md` を参照させることで、Koma の Epoch 保護下で `jiku run`・`jiku decide`・`jiku box classify`・`jiku memory search` を安全に呼び出せます。
+`jiku mcp`（12 ツール）と `koma-mcp`（17 ツール）はどちらもメッセージ単位で `Content-Length` と `NDJSON` の stdio フレーミングを自動判別します。`Claude Code`・`Codex`・`Cursor`・`pi`・OpenCode（`~/.config/opencode/opencode.json`）へ登録して連携できます：
+
+```json
+{
+  "mcp": {
+    "koma": {
+      "type": "local",
+      "command": ["koma-mcp", "--auto-mint-admin"],
+      "enabled": true
+    },
+    "jiku": {
+      "type": "local",
+      "command": ["jiku", "mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+`jiku/skills/SKILL.md` を参照させることで、Koma の Epoch 保護下で `jiku run`・`jiku decide`・`jiku a11y`・`jiku context inspect`・`jiku box classify`・`jiku memory search` を安全に呼び出せます。

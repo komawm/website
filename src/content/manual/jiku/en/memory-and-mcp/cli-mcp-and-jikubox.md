@@ -19,6 +19,13 @@ jiku validate-config
 jiku decide "<prompt>"
 jiku plan "<goal>"
 jiku run "<task>"
+jiku a11y snapshot [--json]
+jiku a11y act <@snap:eN> [--action click]
+jiku tts say "<text>"
+jiku tts stop
+jiku avatar serve [--bind <ADDR>] [--vrm <PATH>]
+jiku context inspect [--max-tokens <N>] [--sample-text <TEXT>]
+jiku bench run [--offline|--live] [--endpoint <URL>] [--model <NAME>] [--out-dir <DIR>]
 jiku box classify [<DIR>]
 jiku memory search "<QUERY>"
 jiku skills list
@@ -35,14 +42,14 @@ jikud --headless-check
 
 ## Model Context Protocol (MCP) Server
 
-Run `jiku mcp` over standard input/output for external agent hosts or editor integrations:
+Run `jiku mcp` over standard input/output (auto-detecting `Content-Length` and `NDJSON` framing per message) for external agent hosts or editor integrations:
 
 ```bash
 jiku mcp --print-tools
 jiku mcp --stateless
 ```
 
-The server exposes seven tools:
+The server exposes twelve tools:
 
 | Tool | Purpose |
 | :--- | :--- |
@@ -53,6 +60,11 @@ The server exposes seven tools:
 | `jiku_box_classify` | Classify a directory via JikuBox heuristics. |
 | `jiku_memory_search` | Query full-text local history and memory layers. |
 | `jiku_skills_list` | List installed and staged skill definitions. |
+| `jiku_a11y_snapshot` | Capture situational AT-SPI2 UI accessibility nodes with `@snap:eN` refs. |
+| `jiku_a11y_act` | Invoke a semantic AT-SPI2 action targeting an `@snap:eN` ref. |
+| `jiku_tts_say` | Synthesize and enqueue speech audio plus 20 ms lip-sync timeline cues. |
+| `jiku_context_inspect` | Inspect 4-stage token budget compaction without hitting an upstream LLM. |
+| `jiku_bench_run` | Run offline or live `2x2` `VirtualPaint` decision vs. grounding benchmarks. |
 
 ## JikuBox & Skill Review Workflow
 

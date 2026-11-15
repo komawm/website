@@ -3,7 +3,7 @@
 > [!TIP]
 > Koma には Hyprland 互換の既定キーマップ（`inherit_default_binds = true`）が組み込まれています。`~/.config/koma/init.lua` が存在しない状態でも、起動直後からターミナル起動・タイリングやフロートの切替・ワークスペース切替・設定リロードを行えます。
 
-![Koma の既定 Dwindle タイリングワークスペース](/media/koma-dwindle.webp)
+![Koma の既定 Dwindle タイリングワークスペース](https://cdn.komawm.org/media/koma-dwindle.webp)
 
 ## 起動モード（`koma [OPTIONS]`）
 

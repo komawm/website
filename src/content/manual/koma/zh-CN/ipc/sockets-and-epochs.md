@@ -24,12 +24,14 @@ Koma 在 `$XDG_RUNTIME_DIR/koma/<signature>/`（目录权限 `0700`）下提供�
 ## 虚拟座席（`vseat`）与零拷贝 `SCM_RIGHTS` 抓屏
 
 - **工作区隔离虚拟座席**：每个受租约控制的工作区拥有独立的虚拟指针、键盘与剪贴板状态，不会干扰人类物理 `seat0` 的焦点或剪贴板。
+- **高精度样条轨迹、`ClickGrab` 与 `LabelPill`**：除 `vseat.pointer_move`、`vseat.click`（支持 `modifiers` + `label`）和 `vseat.drag` 外，Koma 还提供 `vseat.path` / `vseat.stroke`（`250 Hz` 向心 Catmull-Rom / Bezier 重采样配合 Smithay `ClickGrab` 拖拽事件派发）、`vseat.relative_move`、`vseat.wheel`、`vseat.hit_test`、`vseat.cursor_label` 与 `vseat.cursor_settle`。
+- **显式 `DeliverySemantics` 投递语义**：IPC 错误携带结构化的 `DeliveryDisposition`（`Unknown`、`NotDelivered`、`DeliveryUncertain`、`DeliveredUnverified`、`DeliveredVerified`）与 `RetryDisposition`（`Safe`、`Unsafe`、`Unknown`），便于调用方判断是否适合重试。
 - **三级 `TextInjectStrategy`**：UTF-8 文本注入会自动在 `xkb_keymap`、`text_input_v3` 或 `clipboard`（`Ctrl+Shift+V`）之间选择合适路径，避免触发 Fcitx5/IBus 输入法候选框。
 - **只读密封 `SCM_RIGHTS` `memfd` / SHM**：`capture.frame` 将 RGBA8 像素数据写入只读密封的 `memfd`（Linux/FreeBSD）或 POSIX 共享内存描述符（BSD 回退路径），并通过 `SCM_RIGHTS` 传递文件描述符，避免大体积图像经过 JSON 拷贝。
 
 ## `koma-mcp` 标准输入输出服务
 
-`koma-mcp` 将 `koma-agent.sock` 封装为基于 stdio 的 JSON-RPC 2.0 MCP 服务，可直接接入 `Claude Code`、`Codex`、`Cursor`、`OpenCode` 或 [Jiku](/zh-CN/jiku/)：
+`koma-mcp` 按需延迟连接 `koma-agent.sock`，并在 stdio 通道上逐帧自动识别 `Content-Length`（LSP 风格）与换行分隔 JSON（`NDJSON`）帧格式，可直接接入 `Claude Code`、`Codex`、`Cursor`、`OpenCode`、`pi` 或 [Jiku](/zh-CN/jiku/)：
 
 ```bash
 # 离线查看内置 MCP 工具 Schema
@@ -42,4 +44,4 @@ KOMA_CAPABILITY_TOKEN=koma_cap_... koma-mcp
 koma-mcp --auto-mint-admin
 ```
 
-内置 `koma-mcp` 工具包括：`koma_scene_inventory`、`koma_ws_create`、`koma_capture_frame`、`koma_click`、`koma_drag`、`koma_key`、`koma_inject_text`、`koma_paste_mime`、`koma_win_activate` 与 `koma_exec_macro`，以及所有在 `~/.config/koma/init.lua` 中通过 `koma.macro.define(...)` 注册的 `macro__<id>` 宏工具。
+内置 `koma-mcp` 共暴露 17 个核心工具（`koma_ping`、`koma_scene_inventory`、`koma_ws_create`、`koma_capture_frame`、`koma_click`、`koma_drag`、`koma_key`、`koma_inject_text`、`koma_paste_mime`、`koma_win_activate`、`koma_exec_macro`、`koma_path`、`koma_cursor_settle`、`koma_wheel`、`koma_relative_move`、`koma_hit_test` 与 `koma_cursor_label`），以及所有在 `~/.config/koma/init.lua` 中通过 `koma.macro.define(...)` 注册的 `macro__<id>` 宏工具。

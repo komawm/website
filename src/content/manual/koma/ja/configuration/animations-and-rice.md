@@ -120,3 +120,38 @@ koma.macro.define({
     end,
 })
 ```
+
+### エージェントカーソル表示と多点スプライン軌道
+
+- **GLES2 SDF エージェントカーソルと `LabelPill`（`koma.appearance({ agent_cursor = ... })`）**：`enabled`・`size`・`accent_color`・`trail_enabled`・`fog_enabled`・`ripple_enabled`・`label_enabled`・`idle_timeout_ms`・`idle_wobble`（`KomaAgentCursorSpec`）を設定できます。エージェントのキャプチャビュー（`koma.capture`）からはカーソルオーバーレイが自動除外されます。
+- **多点スプライン軌道（`MacroContext:{move_path, stroke_path, path, settle_cursor}`）**：`waypoints`（`KomaAnchorPoint[]`）と任意の `spline = "auto" | "catmull_rom" | "bezier"`（`KomaPathSplineKind`）を指定し、求心（$\alpha = 0.5$）Catmull-Rom 補間と `250 Hz` 適応サブフレーム再標本化で滑らかに描画・移動し、`ctx:settle_cursor()` で静止させます：
+
+```lua
+koma.appearance({
+    agent_cursor = {
+        enabled = true,
+        trail_enabled = true,
+        fog_enabled = true,
+        ripple_enabled = true,
+        label_enabled = true,
+    },
+})
+
+koma.macro.define({
+    id = "canvas.spline_stroke",
+    app_id = ".*",
+    description = "複数ウェイポイントを通る求心 Catmull-Rom スプラインで描画ドラッグを実行",
+    run = function(ctx)
+        ctx:stroke_path({
+            spline = "catmull_rom",
+            button = "left",
+            waypoints = {
+                { anchor = "center", x = -120, y = -40 },
+                { anchor = "center", x = 0, y = -90 },
+                { anchor = "center", x = 140, y = 20 },
+            },
+        })
+        ctx:settle_cursor(false)
+    end,
+})
+```

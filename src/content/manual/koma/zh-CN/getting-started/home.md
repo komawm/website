@@ -3,7 +3,9 @@
 > [!NOTE]
 > Koma 是一款独立、键盘驱动的 Wayland 平铺合成器。你可以单独安装并日常使用 Koma 窗口管理器，无需任何 AI 工具或伴侣守护进程——[Jiku](/zh-CN/jiku/) 完全可选。
 
-![运行在默认 Dwindle 平铺布局下的 Koma](/media/koma-dwindle.webp)
+![运行在默认 Dwindle 平铺布局下的 Koma](https://cdn.komawm.org/media/koma-dwindle.webp)
+
+![Koma 平铺、横向滚动与概览实机展示](https://cdn.komawm.org/media/koma-tiling.mp4 "Koma Dwindle 平铺、Scrolling 横向滚动与 Super + Tab 概览实机录屏。")
 
 ## 核心特性
 
@@ -11,6 +13,7 @@
 2. **按工作区独立布局与视觉效果**：每个工作区可独立使用 `"dwindle"`（有头工作区默认）、`"scrolling"`（横向滚动列）、`"deck"`（全视口单窗堆栈与后台 Stash）或 `"bsp"`，并支持 Dual-Kawase 模糊、圆角、阴影、焦点环与弹簧动画。
 3. **人类优先抢占（`< 1 ms`）**：任意物理键鼠输入或按下 `Mod + G`，都会立即吊销当前的自动化写租约，并通过单调递增的 `Epoch` 计数阻断过期并发指令（`4091 ERR_HUMAN_PREEMPTED`）。
 4. **内置容器沙箱与双套接字隔离**：将完整管理通道（`koma-admin.sock`）与基于能力令牌的受限通道（`koma-agent.sock`）分离，并支持通过 `komactl sandbox`（`bwrap` / 无根 `podman`）与 `wp_security_context_manager_v1` 隔离窗口客户端。
+5. **高精度智能体指针与 17 项 MCP 工具**：支持 `250 Hz` 多路点 `vseat.path` / `vseat.stroke` 样条轨迹、Smithay `ClickGrab` 拖拽投递、GLES2 SDF 智能体光标与 `LabelPill`（`label_enabled`）、`DeliverySemantics` 投递语义与支持双帧协议（`Content-Length` + NDJSON）的延迟连接 `koma-mcp`。
 
 ## 手册导航
 

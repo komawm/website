@@ -305,6 +305,23 @@ const editUrl = `https://github.com/komawm/docs/tree/main/manual/${surface}/${lo
     border-radius: var(--radius-md);
     border: 1px solid var(--border-hairline);
   }
+  .doc-prose :global(.doc-video) {
+    margin: 1.25rem 0;
+  }
+  .doc-prose :global(video.doc-video-player) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-hairline);
+    background: var(--bg-subtle);
+  }
+  .doc-prose :global(.doc-video-caption) {
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: var(--fg-secondary);
+  }
   .doc-pager {
     margin-top: 2.5rem;
     padding-top: 1.15rem;

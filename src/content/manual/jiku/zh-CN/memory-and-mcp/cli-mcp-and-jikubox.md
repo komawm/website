@@ -19,6 +19,13 @@ jiku validate-config
 jiku decide "<prompt>"
 jiku plan "<goal>"
 jiku run "<task>"
+jiku a11y snapshot [--json]
+jiku a11y act <@snap:eN> [--action click]
+jiku tts say "<text>"
+jiku tts stop
+jiku avatar serve [--bind <ADDR>] [--vrm <PATH>]
+jiku context inspect [--max-tokens <N>] [--sample-text <TEXT>]
+jiku bench run [--offline|--live] [--endpoint <URL>] [--model <NAME>] [--out-dir <DIR>]
 jiku box classify [<DIR>]
 jiku memory search "<QUERY>"
 jiku skills list
@@ -35,14 +42,14 @@ jikud --headless-check
 
 ## MCP 服务端（`jiku mcp`）
 
-通过标准输入输出启动 `jiku mcp`，供外部智能体宿主或编辑器集成调用：
+通过标准输入输出启动 `jiku mcp`（逐消息自动识别 `Content-Length` 与 `NDJSON` 帧格式），供外部智能体宿主或编辑器集成调用：
 
 ```bash
 jiku mcp --print-tools
 jiku mcp --stateless
 ```
 
-服务端暴露以下七个工具：
+服务端暴露以下 12 个工具：
 
 | 工具名 | 用途 |
 | :--- | :--- |
@@ -53,6 +60,11 @@ jiku mcp --stateless
 | `jiku_box_classify` | 通过 JikuBox 规则分类目录结构。 |
 | `jiku_memory_search` | 检索本地全文历史与各层记忆。 |
 | `jiku_skills_list` | 列出已安装与暂存的技能定义。 |
+| `jiku_a11y_snapshot` | 抓取带 `@snap:eN` 引用的情景化 AT-SPI2 辅助功能节点。 |
+| `jiku_a11y_act` | 针对 `@snap:eN` 引用分派语义化 AT-SPI2 动作。 |
+| `jiku_tts_say` | 合成并排队播放语音音频及 20 ms 口型时间线帧。 |
+| `jiku_context_inspect` | 在不请求上游大模型的情况下检验四阶段 Token 压缩效果。 |
+| `jiku_bench_run` | 运行离线或在线 `2x2` `VirtualPaint` 判定与锚定消融基准测试。 |
 
 ## JikuBox 与技能审批流程
 

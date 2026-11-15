@@ -49,7 +49,7 @@ komactl sandbox run --with-agent-sock --ro-bind ~/repo:/workspace -- code-oss
 
 ## 全局空间概览（`koma-overview`）
 
-![koma-overview 空间工作区概览界面](/media/koma-overview.webp)
+![koma-overview 空间工作区概览界面](https://cdn.komawm.org/media/koma-overview.webp)
 
 通过 `Mod + Tab`（或自定义绑定 `koma.act.overview.toggle()`）呼出 `koma-overview`：
 

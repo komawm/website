@@ -2,7 +2,7 @@
 
 Koma reads its configuration from `~/.config/koma/init.lua` (or `$XDG_CONFIG_HOME/koma/init.lua`, falling back to `/etc/xdg/koma/init.lua`). You can override the config path with `KOMA_CONFIG` or `koma -c <path>`, and split larger setups into modules under `~/.config/koma/lua/` loaded via `require(...)`.
 
-![Koma scrolling workspace layout and Lua configuration](/media/koma-scrolling.webp "Scrolling strip layout with multi-column focus and status bar.")
+![Koma scrolling workspace layout and Lua configuration](https://cdn.komawm.org/media/koma-scrolling.webp "Scrolling strip layout with multi-column focus and status bar.")
 
 ## Validation & Safe Reloading
 

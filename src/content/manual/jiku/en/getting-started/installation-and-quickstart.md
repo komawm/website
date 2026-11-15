@@ -3,7 +3,7 @@
 > [!NOTE]
 > Installing Jiku is optional. [Koma](/docs/getting-started/installation/) works as a standalone Wayland tiling compositor without `jikud` or `jiku`.
 
-![Running jiku CLI checks inside a Koma terminal](/media/jiku-terminal.webp "Checking Jiku status and running CLI commands in a Koma terminal.")
+![Running jiku CLI checks inside a Koma terminal](https://cdn.komawm.org/media/jiku-terminal.webp "Checking Jiku status and running CLI commands in a Koma terminal.")
 
 ## Installing `jikud` & `jiku`
 
@@ -63,11 +63,35 @@ cargo +1.100.0 build --release --locked -p jikud -p jiku
    jikud --daemon &
    jiku status --json
    ```
-4. **Test with a dry-run task**:
+4. **Test with a dry-run task and local diagnostics**:
    ```bash
    jiku run --dry-run "Open a terminal and check uname -a"
+   jiku a11y snapshot --json
+   jiku context inspect --max-tokens 4096
+   jiku tts say "Jiku is ready"
+   jiku avatar serve --bind 127.0.0.1:4190
+   jiku bench run --offline
    ```
 
-## Using Jiku from External Coding Agents (`Claude Code`, `Codex`, `OpenCode`, `Cursor`)
+## Using Jiku from External Coding Agents (`Claude Code`, `Codex`, `OpenCode`, `pi`, `Cursor`)
 
-Register `jiku mcp` as an stdio MCP server in your coding agent, or point it at `jiku/skills/SKILL.md` so it can call `jiku run`, `jiku decide`, `jiku box classify`, and `jiku memory search` over Koma's Epoch-fenced IPC.
+Both `jiku mcp` (12 orchestration tools) and `koma-mcp` (17 compositor tools) auto-detect `Content-Length` and `NDJSON` stdio framing per message. Register them in `Claude Code`, `Codex`, `Cursor`, `pi`, or OpenCode (`~/.config/opencode/opencode.json`):
+
+```json
+{
+  "mcp": {
+    "koma": {
+      "type": "local",
+      "command": ["koma-mcp", "--auto-mint-admin"],
+      "enabled": true
+    },
+    "jiku": {
+      "type": "local",
+      "command": ["jiku", "mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+You can also point coding agents at `jiku/skills/SKILL.md` so they invoke `jiku run`, `jiku decide`, `jiku a11y`, `jiku context inspect`, `jiku box classify`, and `jiku memory search` under Koma's Epoch-fenced IPC.

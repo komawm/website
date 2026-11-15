@@ -2,7 +2,7 @@
 
 Jiku 将会话状态与本地全文历史保存在 `~/.local/state/jiku/state.db`，并要求所有生成的技能经过人工审查后才能启用。
 
-![在 Koma 终端中检索 Jiku 本地历史与查看技能状态](/media/jiku-terminal.webp "在终端中运行 Jiku 历史检索与技能状态查看命令。")
+![在 Koma 终端中检索 Jiku 本地历史与查看技能状态](https://cdn.komawm.org/media/jiku-terminal.webp "在终端中运行 Jiku 历史检索与技能状态查看命令。")
 
 ## 本地记忆分层
 
@@ -26,3 +26,14 @@ Jiku 将会话状态与本地全文历史保存在 `~/.local/state/jiku/state.db
    ```bash
    jiku skills approve <skill_id>
    ```
+
+## 小上下文预算与四阶段压缩瀑布
+
+针对紧凑本地模型（如 `llama-server` 上 `4096`–`8192` Token 窗口的 `Qwen3VL-2B-Instruct-Q4_K_M`），当提示词估算超出 `compaction_trigger_ratio`（`0.72`）时，`context_budget` 会按确定性顺序执行四阶段压缩，同时保证 `min_output_tokens`（`256`）至 `reserved_output_tokens`（`768`）的回复空间：
+
+1. **`stage1_visual_roi_pruning`**：仅保留最新的 `keep_recent_images`（`1`）张截图（每张按 `image_token_estimate = 512` 估算），丢弃历史冗余图像帧。
+2. **`stage2_a11y_skeleton_folding`**：将冗长的 AT-SPI2 子树折叠为最多 `a11y_max_entries_small_ctx`（`28`）个最相关的可交互 `@snap:eN` 节点。
+3. **`stage3_episodic_l1_folding`**：压缩较早轮次的对话并裁剪 `l1_app_quirks` / L2 记忆片段，同时完整保留 `[context]`、`[cursor]` 与 `[a11y]` 锚定头部信息。
+4. **输出预留钳位**：将 `max_output_tokens` 稳妥收敛在剩余安全余量（`64` Token）以内。
+
+可通过 `jiku context inspect` 离线检验压缩结果：在实测的 `4096`-token 预算检查中，`5031` Token 的输入载荷被压缩至 `2943` Token（`clamped_max_output_tokens = 768`、`dropped_images = 2`、`truncated_a11y_nodes = 36`）。

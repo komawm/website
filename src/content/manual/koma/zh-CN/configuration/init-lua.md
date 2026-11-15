@@ -2,7 +2,7 @@
 
 Koma 默认从 `~/.config/koma/init.lua`（或 `$XDG_CONFIG_HOME/koma/init.lua`，回退路径为 `/etc/xdg/koma/init.lua`）加载配置。可通过环境变量 `KOMA_CONFIG` 或启动参数 `koma -c <path>` 指定其他配置文件；较长的配置可拆分到 `~/.config/koma/lua/` 目录中并用 `require(...)` 引入。
 
-![Koma 横向滚动工作区布局与 Lua 配置预览](/media/koma-scrolling.webp "Scrolling 连续横向滚动列布局与状态栏预览。")
+![Koma 横向滚动工作区布局与 Lua 配置预览](https://cdn.komawm.org/media/koma-scrolling.webp "Scrolling 连续横向滚动列布局与状态栏预览。")
 
 ## 配置校验与安全热重载
 
