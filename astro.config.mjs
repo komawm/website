@@ -35,11 +35,17 @@ export default defineConfig({
   site: SITE_URL,
   output: "static",
   outDir: "./dist",
+  build: {
+    inlineStylesheets: "never",
+  },
   prefetch: {
     prefetchAll: true,
     defaultStrategy: "hover",
   },
   vite: {
+    build: {
+      assetsInlineLimit: 0,
+    },
     define: {
       "import.meta.env.PUBLIC_CDN_BASE_URL": JSON.stringify("https://cdn.komawm.org"),
     },

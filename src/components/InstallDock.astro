@@ -20,7 +20,13 @@ const channels = getInstallChannels(surface);
 const pointerUrl = RELEASE_POINTERS[surface];
 ---
 
-<section id="install" class="install-shell" aria-labelledby="install-title">
+<section
+  id="install"
+  class="install-shell"
+  aria-labelledby="install-title"
+  data-copied={t.copied}
+  data-copy-failed={t.copyFailed}
+>
   <div class="section-header-bar">
     <h2 id="install-title">{t.installHeading}</h2>
     <div class="section-meta-links">
@@ -106,81 +112,8 @@ const pointerUrl = RELEASE_POINTERS[surface];
   </div>
 </section>
 
-<script
-  define:vars={{
-    copiedMessage: t.copied,
-    copyFailedMessage: t.copyFailed,
-  }}
->
-  const copied = copiedMessage;
-  const copyFailed = copyFailedMessage;
-  for (const element of document.querySelectorAll("[data-copy]")) {
-    if (!(element instanceof HTMLButtonElement)) continue;
-    const button = element;
-    const original = button.textContent ?? "Copy";
-    button.addEventListener("click", async () => {
-      const command = button.dataset.copy ?? "";
-      try {
-        await navigator.clipboard.writeText(command);
-        button.textContent = copied;
-        button.dataset.copiedState = "true";
-        window.setTimeout(() => {
-          button.textContent = original;
-          delete button.dataset.copiedState;
-        }, 1500);
-      } catch {
-        button.textContent = copyFailed;
-      }
-    });
-  }
-
-  const installTabs = [...document.querySelectorAll("[data-install-tab]")];
-  const installPanes = document.querySelectorAll("[data-install-pane]");
-  const activateInstallTab = (tab, focus = false) => {
-    const target = tab.dataset.installTab;
-    for (const item of installTabs) {
-      if (!(item instanceof HTMLButtonElement)) continue;
-      const active = item === tab;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-selected", String(active));
-      item.tabIndex = active ? 0 : -1;
-    }
-    for (const pane of installPanes) {
-      if (!(pane instanceof HTMLElement)) continue;
-      pane.hidden = pane.dataset.installPane !== target;
-    }
-    if (focus && tab instanceof HTMLButtonElement) tab.focus();
-  };
-  for (const tab of installTabs) {
-    if (!(tab instanceof HTMLButtonElement)) continue;
-    tab.addEventListener("click", () => activateInstallTab(tab));
-    tab.addEventListener("keydown", (event) => {
-      if (
-        event.key !== "ArrowLeft" &&
-        event.key !== "ArrowRight" &&
-        event.key !== "Home" &&
-        event.key !== "End"
-      ) {
-        return;
-      }
-      event.preventDefault();
-      const buttons = installTabs.filter(
-        (item) => item instanceof HTMLButtonElement,
-      );
-      const index = buttons.indexOf(tab);
-      let next = index;
-      if (event.key === "ArrowLeft") {
-        next = (index - 1 + buttons.length) % buttons.length;
-      } else if (event.key === "ArrowRight") {
-        next = (index + 1) % buttons.length;
-      } else if (event.key === "Home") {
-        next = 0;
-      } else if (event.key === "End") {
-        next = buttons.length - 1;
-      }
-      activateInstallTab(buttons[next], true);
-    });
-  }
+<script>
+  import "../scripts/install-dock.ts";
 </script>
 
 <style>

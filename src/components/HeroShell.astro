@@ -80,15 +80,8 @@ const t = getUiMessages(locale);
       href={`https://komawm.org${localizePath(Astro.url.pathname, "en")}`}
     />
     <title>{siteTitle}</title>
-    <script is:inline>
-      try {
-        const s = window.localStorage.getItem("komawm-theme");
-        const dark = s
-          ? s === "dark"
-          : window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-      } catch {}
-    </script>
+    <link rel="stylesheet" href="/shiki-tokens.css" />
+    <script is:inline src="/scripts/theme-init.js"></script>
   </head>
   <body class="site-body">
     <a class="skip-link" href="#main-content">{t.skipToContent}</a>

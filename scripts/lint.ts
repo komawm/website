@@ -76,11 +76,33 @@ for (const docName of ["README.md", "AGENTS.md"]) {
   }
 }
 
-const checkDirs = ["src", "scripts", ".github"];
+const checkDirs = ["src", "scripts", "public", ".github"];
+const UNSAFE_CSP_RE = /unsafe-inline|unsafe-eval/iu;
+const UNSAFE_DOM_RE =
+  /\.(?:innerHTML|outerHTML)\b|insertAdjacentHTML\b|\beval\s*\(|new\s+Function\b/u;
+const ANY_TYPE_RE = /(?::\s*any\b|\bas\s+any\b)/u;
+const ASTRO_INLINE_RE = /\bdefine:vars\b|\sstyle\s*=/u;
+const ASTRO_INLINE_SCRIPT_RE = /<script(?![^>]*\bsrc="\/scripts\/)[^>]*\bis:inline\b/u;
+
+for (const relFile of ["astro.config.mjs"]) {
+  const text = await readFile(join(ROOT, relFile), "utf8");
+  if (BANNED_TOOLCHAIN_RE.test(text)) {
+    errors.push(`${relFile}: references prohibited tool/runner`);
+  }
+  if (UNSAFE_DOM_RE.test(text) || ANY_TYPE_RE.test(text)) {
+    errors.push(`${relFile}: contains prohibited unsafe DOM/eval/any construct`);
+  }
+}
+
 for (const relDir of checkDirs) {
   for (const file of await walkFiles(join(ROOT, relDir))) {
     if (file.endsWith("lint.ts")) continue;
-    if (!/\.(?:ts|astro|mjs|js|yml|yaml|json)$/u.test(file)) continue;
+    if (
+      !/\.(?:ts|astro|mjs|js|yml|yaml|json)$/u.test(file) &&
+      !file.endsWith("_headers")
+    ) {
+      continue;
+    }
     const text = await readFile(file, "utf8");
     const rel = file.slice(ROOT.length + 1);
     if (BANNED_TOOLCHAIN_RE.test(text)) {
@@ -91,7 +113,39 @@ for (const relDir of checkDirs) {
     if (/\b(?:TODO|FIXME)\b/u.test(text) && !rel.startsWith("src/content/")) {
       errors.push(`${rel}: contains unresolved TODO/FIXME placeholder`);
     }
+    if (
+      UNSAFE_CSP_RE.test(text) &&
+      !rel.startsWith("src/content/") &&
+      !file.endsWith(".test.ts") &&
+      !file.endsWith("validate-dist.ts")
+    ) {
+      errors.push(`${rel}: references prohibited unsafe-inline/unsafe-eval`);
+    }
+    if (!rel.startsWith("src/content/") && /\.(?:ts|astro|mjs|js)$/u.test(file)) {
+      if (UNSAFE_DOM_RE.test(text)) {
+        errors.push(`${rel}: contains prohibited innerHTML/eval construct`);
+      }
+      if (ANY_TYPE_RE.test(text)) {
+        errors.push(`${rel}: contains prohibited ': any' or 'as any'`);
+      }
+    }
+    if (
+      file.endsWith(".astro") &&
+      (ASTRO_INLINE_RE.test(text) || ASTRO_INLINE_SCRIPT_RE.test(text))
+    ) {
+      errors.push(
+        `${rel}: contains prohibited inline style=, define:vars, or inline <script>`,
+      );
+    }
   }
+}
+
+const dependabotText = await readFile(join(ROOT, ".github/dependabot.yml"), "utf8");
+if (
+  /interval:\s*weekly/u.test(dependabotText) ||
+  !/interval:\s*monthly/u.test(dependabotText)
+) {
+  errors.push(".github/dependabot.yml: expected interval: monthly for all ecosystems");
 }
 
 for (const surface of ["koma", "jiku"] as const) {

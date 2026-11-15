@@ -78,10 +78,30 @@ for (const asset of [
   "404.html",
   "search-index.json",
   "sitemap.xml",
+  "shiki-tokens.css",
+  "scripts/theme-init.js",
   "_redirects",
   "_headers",
 ]) {
   await access(join(DIST, asset));
+}
+
+const headersText = await readFile(join(DIST, "_headers"), "utf8");
+if (/unsafe-inline|unsafe-eval/iu.test(headersText)) {
+  throw new Error("_headers CSP must not contain unsafe-inline or unsafe-eval");
+}
+if (
+  !headersText.includes("style-src 'self'") ||
+  !headersText.includes("script-src 'self'")
+) {
+  throw new Error(
+    "_headers CSP must enforce strict style-src 'self' and script-src 'self'",
+  );
+}
+
+const shikiCss = await readFile(join(DIST, "shiki-tokens.css"), "utf8");
+if (!shikiCss.includes(".shk-")) {
+  throw new Error("shiki-tokens.css must emit external .shk- token rules");
 }
 
 try {
@@ -149,6 +169,27 @@ async function auditAllHtml(dir: string): Promise<void> {
     const loadedDesign = links.filter((href) => designSheets.has(href)).length;
     if (loadedDesign !== 1) {
       throw new Error(`${full}: expected 1 design stylesheet, found ${loadedDesign}`);
+    }
+    if (!links.includes("/shiki-tokens.css")) {
+      throw new Error(`${full}: missing external /shiki-tokens.css stylesheet link`);
+    }
+    const inlineScripts = html.match(/<script(?![^>]*\bsrc=)[^>]*>/giu);
+    if (inlineScripts) {
+      throw new Error(
+        `${full}: found ${inlineScripts.length} prohibited inline <script> tag(s)`,
+      );
+    }
+    if (/<style\b/iu.test(html)) {
+      throw new Error(`${full}: found prohibited inline <style> tag`);
+    }
+    if (/\sstyle\s*=/iu.test(html)) {
+      throw new Error(`${full}: found prohibited inline style= attribute`);
+    }
+    for (const match of html.matchAll(/\b(shk-[0-9a-f]{8})\b/gu)) {
+      const cls = match[1] ?? "";
+      if (!shikiCss.includes(`.${cls}{`)) {
+        throw new Error(`${full}: references .${cls} missing from shiki-tokens.css`);
+      }
     }
   }
 }

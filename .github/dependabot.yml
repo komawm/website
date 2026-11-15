@@ -3,12 +3,16 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
-      codeql-action:
+      actions:
         patterns:
-          - "github/codeql-action*"
+          - "*"
   - package-ecosystem: bun
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      bun-dependencies:
+        patterns:
+          - "*"

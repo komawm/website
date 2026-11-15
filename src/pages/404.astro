@@ -20,15 +20,8 @@ const tJa = getUiMessages("ja");
     <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>404 — Koma</title>
-    <script is:inline>
-      try {
-        const s = window.localStorage.getItem("komawm-theme");
-        const dark = s
-          ? s === "dark"
-          : window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-      } catch {}
-    </script>
+    <link rel="stylesheet" href="/shiki-tokens.css" />
+    <script is:inline src="/scripts/theme-init.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">{tEn.skipToContent}</a>
