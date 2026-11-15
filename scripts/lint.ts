@@ -81,6 +81,7 @@ const UNSAFE_CSP_RE = /unsafe-inline|unsafe-eval/iu;
 const UNSAFE_DOM_RE =
   /\.(?:innerHTML|outerHTML)\b|insertAdjacentHTML\b|\beval\s*\(|new\s+Function\b/u;
 const ANY_TYPE_RE = /(?::\s*any\b|\bas\s+any\b)/u;
+const UNSAFE_MARKDOWN_RE = /\ballowDangerousHtml\b|\brehype-raw\b|\brehypeRaw\b/u;
 const ASTRO_INLINE_RE = /\bdefine:vars\b|\sstyle\s*=/u;
 const ASTRO_INLINE_SCRIPT_RE = /<script(?![^>]*\bsrc="\/scripts\/)[^>]*\bis:inline\b/u;
 
@@ -127,6 +128,11 @@ for (const relDir of checkDirs) {
       }
       if (ANY_TYPE_RE.test(text)) {
         errors.push(`${rel}: contains prohibited ': any' or 'as any'`);
+      }
+      if (UNSAFE_MARKDOWN_RE.test(text) && !file.endsWith(".test.ts")) {
+        errors.push(
+          `${rel}: contains prohibited allowDangerousHtml / rehype-raw raw HTML parsing`,
+        );
       }
     }
     if (
