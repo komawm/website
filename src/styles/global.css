@@ -238,6 +238,31 @@ html[data-theme="dark"] .shiki span {
   white-space: nowrap;
 }
 
+math {
+  font-family:
+    "Latin Modern Math", "STIX Two Math", Cambria, "Noto Sans Variable", serif;
+  font-size: 1.04em;
+}
+
+math[display="block"],
+.math-block {
+  display: block;
+  margin: 1.15rem 0;
+  padding: 0.85rem 1.05rem;
+  overflow-x: auto;
+  text-align: center;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--fg-primary);
+}
+
+.math-inline {
+  display: inline-block;
+  padding: 0 0.18rem;
+  vertical-align: middle;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

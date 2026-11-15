@@ -111,12 +111,13 @@ try {
   if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") throw err;
 }
 
+const expectedSearchRecords = REQUIRED_MANUAL_HTML.length - 6;
 const searchRecords = JSON.parse(
   await readFile(join(DIST, "search-index.json"), "utf8"),
 );
-if (!Array.isArray(searchRecords) || searchRecords.length !== 30) {
+if (!Array.isArray(searchRecords) || searchRecords.length !== expectedSearchRecords) {
   throw new Error(
-    `Expected 30 search-index records, found ${searchRecords?.length ?? 0}`,
+    `Expected ${expectedSearchRecords} search-index records, found ${searchRecords?.length ?? 0}`,
   );
 }
 

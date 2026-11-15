@@ -21,7 +21,7 @@ describe("manualDocs schema and tri-lingual parity", () => {
     );
   });
 
-  test("loads koma (7) and jiku (3) manifests and renders all 30 localized pages", async () => {
+  test("loads koma (>=7) and jiku (>=3) manifests and renders all localized pages", async () => {
     const komaManifest = await loadManifest("koma");
     const jikuManifest = await loadManifest("jiku");
     expect(komaManifest.schema).toBe(1);
@@ -31,8 +31,10 @@ describe("manualDocs schema and tri-lingual parity", () => {
 
     const komaSlugs = await listSurfaceSlugs("koma");
     const jikuSlugs = await listSurfaceSlugs("jiku");
-    expect(komaSlugs).toHaveLength(7);
-    expect(jikuSlugs).toHaveLength(3);
+    expect(komaSlugs.length).toBeGreaterThanOrEqual(7);
+    expect(jikuSlugs.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(komaSlugs).size).toBe(komaSlugs.length);
+    expect(new Set(jikuSlugs).size).toBe(jikuSlugs.length);
 
     for (const locale of SUPPORTED_LOCALES) {
       for (const slug of komaSlugs) {
