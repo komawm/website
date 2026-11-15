@@ -56,15 +56,8 @@ const editUrl = `https://github.com/komawm/docs/tree/main/manual/${surface}/${lo
       href={`https://komawm.org${localizePath(Astro.url.pathname, "en")}`}
     />
     <title>{`${doc.title} — ${brandName}`}</title>
-    <script is:inline>
-      try {
-        const s = window.localStorage.getItem("komawm-theme");
-        const dark = s
-          ? s === "dark"
-          : window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-      } catch {}
-    </script>
+    <link rel="stylesheet" href="/shiki-tokens.css" />
+    <script is:inline src="/scripts/theme-init.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#doc-article">{t.skipToContent}</a>
@@ -175,84 +168,7 @@ const editUrl = `https://github.com/komawm/docs/tree/main/manual/${surface}/${lo
     <SiteFooter locale={locale} />
 
     <script>
-      const pageCache = new Map<string, string>();
-
-      async function fetchDocHtml(url: string): Promise<string> {
-        const cached = pageCache.get(url);
-        if (cached) return cached;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const html = await res.text();
-        pageCache.set(url, html);
-        return html;
-      }
-
-      async function navigateDoc(href: string, push = true): Promise<void> {
-        try {
-          const rawHtml = await fetchDocHtml(href);
-          const parsed = new DOMParser().parseFromString(rawHtml, "text/html");
-          const nextArticle = parsed.getElementById("doc-article");
-          const nextToc = parsed.getElementById("doc-toc");
-          const curArticle = document.getElementById("doc-article");
-          const curToc = document.getElementById("doc-toc");
-          if (!nextArticle || !curArticle) {
-            window.location.assign(href);
-            return;
-          }
-          curArticle.replaceWith(nextArticle);
-          if (nextToc && curToc) curToc.replaceWith(nextToc);
-          document.title = parsed.title;
-          if (push) window.history.pushState({}, "", href);
-          window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-
-          for (const a of document.querySelectorAll(
-            ".wiki-sidebar a[data-doc-swap-link]",
-          )) {
-            const match =
-              new URL((a as HTMLAnchorElement).href, window.location.origin).pathname ===
-              new URL(href, window.location.origin).pathname;
-            if (match) a.setAttribute("aria-current", "page");
-            else a.removeAttribute("aria-current");
-          }
-        } catch {
-          window.location.assign(href);
-        }
-      }
-
-      document.addEventListener("mouseover", (e) => {
-        const a = (e.target as HTMLElement | null)?.closest(
-          "a[data-doc-swap-link]",
-        ) as HTMLAnchorElement | null;
-        if (a && a.origin === window.location.origin) {
-          fetchDocHtml(a.href).catch(() => {});
-        }
-      });
-
-      document.addEventListener("click", (e) => {
-        if (
-          e.defaultPrevented ||
-          e.button !== 0 ||
-          e.metaKey ||
-          e.ctrlKey ||
-          e.shiftKey ||
-          e.altKey
-        )
-          return;
-        const a = (e.target as HTMLElement | null)?.closest(
-          "a[data-doc-swap-link]",
-        ) as HTMLAnchorElement | null;
-        if (!a || a.origin !== window.location.origin) return;
-        if (document.getElementById("doc-article")) {
-          e.preventDefault();
-          navigateDoc(a.href, true);
-        }
-      });
-
-      window.addEventListener("popstate", () => {
-        if (document.getElementById("doc-article")) {
-          navigateDoc(window.location.href, false);
-        }
-      });
+      import "../scripts/manual-nav.ts";
     </script>
   </body>
 </html>

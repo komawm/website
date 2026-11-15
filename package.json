@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 ./node_modules/.bin/astro dev",
-    "fmt": "bun fmt --no-script astro.config.mjs package.json tsconfig.json wrangler.jsonc scripts src/data src/lib src/styles src/worker.ts src/worker.test.ts",
-    "fmt:check": "bun fmt --no-script --check astro.config.mjs package.json tsconfig.json wrangler.jsonc scripts src/data src/lib src/styles src/worker.ts src/worker.test.ts",
+    "fmt": "bun fmt --no-script astro.config.mjs package.json tsconfig.json wrangler.jsonc public/scripts scripts src/data src/lib src/pages/shiki-tokens.css.ts src/scripts src/styles src/worker.ts src/worker.test.ts",
+    "fmt:check": "bun fmt --no-script --check astro.config.mjs package.json tsconfig.json wrangler.jsonc public/scripts scripts src/data src/lib src/pages/shiki-tokens.css.ts src/scripts src/styles src/worker.ts src/worker.test.ts",
     "lint": "bun scripts/lint.ts",
     "test": "bun test src",
     "typecheck": "ASTRO_TELEMETRY_DISABLED=1 ./node_modules/.bin/astro sync && bun check --no-script -p tsconfig.json",
