@@ -38,5 +38,27 @@ describe("installChannels", () => {
         }
       }
     }
+
+    const komaSource = getInstallChannels("koma").find((c) => c.id === "source");
+    expect(komaSource?.commands[0]?.code).toContain(
+      "koma komactl koma-mcp koma-overview",
+    );
+    expect(komaSource?.commands[0]?.code).not.toContain("koma-compositor");
+
+    const komaBrew = getInstallChannels("koma").find((c) => c.id === "homebrew");
+    expect(komaBrew?.commands[0]?.code).toContain(
+      "https://cdn.komawm.org/install/koma/koma.rb",
+    );
+
+    const jikuSource = getInstallChannels("jiku").find((c) => c.id === "source");
+    expect(jikuSource?.commands[0]?.code).toContain("jikud jiku");
+    expect(jikuSource?.commands[0]?.code).not.toContain("jiku-cli");
+
+    const jikuRpm = getInstallChannels("jiku").find((c) => c.id === "rpm");
+    expect(
+      jikuRpm?.commands.some((cmd) =>
+        cmd.code.includes("https://cdn.komawm.org/releases/jiku/"),
+      ),
+    ).toBe(true);
   });
 });

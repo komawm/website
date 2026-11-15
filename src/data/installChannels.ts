@@ -205,14 +205,14 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     arch: "x86_64 · aarch64 (Linux)",
     summary: {
-      en: "Linux-only Homebrew formula (`depends_on :linux`; macOS is excluded because Koma is a Wayland DRM/KMS compositor).",
+      en: "Prebuilt Linux-only Homebrew formula (`depends_on :linux`) distributed from `https://cdn.komawm.org/install/koma/koma.rb`.",
       "zh-CN":
-        "仅面向 Linux 的 Homebrew 配方（`depends_on :linux`，Koma 为 Wayland DRM/KMS 合成器，不含 macOS）。",
-      ja: "Linux 専用 Homebrew フォーミュラ（Wayland コンポジタのため `depends_on :linux`）。",
+        "仅面向 Linux 的预构建 Homebrew 配方（`depends_on :linux`），直接从 `https://cdn.komawm.org/install/koma/koma.rb` 获取。",
+      ja: "Linux 専用のビルド済み Homebrew フォーミュラ（`depends_on :linux`）。`https://cdn.komawm.org/install/koma/koma.rb` から直接インストールできます。",
     },
     commands: [
       {
-        code: "brew tap komawm/tap https://github.com/komawm/packaging\nbrew install komawm/tap/koma",
+        code: "curl -fsSLO https://cdn.komawm.org/install/koma/koma.rb\nbrew install --formula ./koma.rb",
       },
     ],
   },
@@ -286,7 +286,7 @@ export const KOMA_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     commands: [
       {
-        code: "cargo +1.100.0 install --git https://github.com/komawm/koma.git koma-compositor komactl koma-mcp --locked",
+        code: "cargo +1.100.0 install --git https://github.com/komawm/koma.git koma komactl koma-mcp koma-overview --locked",
       },
     ],
   },
@@ -373,7 +373,20 @@ export const JIKU_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     commands: [
       {
+        label: {
+          en: "Fedora / Copr",
+          "zh-CN": "Fedora / Copr",
+          ja: "Fedora / Copr",
+        },
         code: "sudo dnf copr enable -y komawm/jiku\nsudo dnf install -y jiku",
+      },
+      {
+        label: {
+          en: "Direct RPM from R2 CDN",
+          "zh-CN": "从 R2 CDN 直接安装 RPM",
+          ja: "R2 CDN から直接 RPM を導入",
+        },
+        code: 'TAG=$(curl -fsSL https://cdn.komawm.org/install/jiku/latest.txt)\nsudo dnf install -y "https://cdn.komawm.org/releases/jiku/$TAG/jiku-${TAG#v}-1.x86_64.rpm"',
       },
     ],
   },
@@ -446,7 +459,7 @@ export const JIKU_INSTALL_CHANNELS: readonly InstallChannel[] = [
     },
     commands: [
       {
-        code: "cargo +1.100.0 install --git https://github.com/komawm/jiku.git jikud jiku-cli --locked",
+        code: "cargo +1.100.0 install --git https://github.com/komawm/jiku.git jikud jiku --locked",
       },
     ],
   },
