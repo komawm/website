@@ -65,6 +65,16 @@ export default {
     }
 
     const url = new URL(request.url);
+    if (url.hostname.toLowerCase() === "www.komawm.org") {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          Location: `https://komawm.org${url.pathname}${url.search}`,
+          "Cache-Control": "public, max-age=300",
+        },
+      });
+    }
+
     const { pathname } = url;
 
     // Serve static binaries, CSS/JS chunks, sitemaps, and search indices directly.

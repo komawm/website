@@ -8,6 +8,10 @@
       "pattern": "komawm.org",
       "custom_domain": true,
     },
+    {
+      "pattern": "www.komawm.org",
+      "custom_domain": true,
+    },
   ],
   "assets": {
     "directory": "./dist",
