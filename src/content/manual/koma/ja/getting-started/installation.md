@@ -1,18 +1,60 @@
-# インストールと承認境界
+# インストールと配布チャネル
 
 > [!WARNING]
-> Koma は現在 `v0.0.1` インキュベーション段階にあります。全 9 クレートは `Rust 1.100.0`（Edition 2024）でコンパイル・単体テストおよび QEMU/KVM Arch Linux 仮想マシン上のソフトウェア KMS 検証を通過していますが、実機 GPU での DRM/KMS 出力とセキュリティ承認は `v0.1.0` の目標です。既存のログインセッションを直接置き換えず、まずは `--winit` ネスト実行または VM 上で検証してください。
+> **インキュベーション段階（`v0.0.1`）**：Koma は現在 `v0.0.1` の開発ラインです。全 9 クレートが **Rust `1.100.0`（Edition 2024）** でビルド・ユニットテストに合格し、Arch Linux QEMU/KVM（ソフトウェア KMS `koma --tty`）および FreeBSD `15.1-RELEASE` でのビルド検証を完了していますが、実機 GPU DRM/KMS スキャンアウトおよびセキュリティ承認は `v0.1.0` 目標です。予備の TTY または既存セッションを残した状態で試用してください。
 
 > [!NOTE]
-> Koma は単体で完結する Wayland タイル型コンポジタです。通常のキーボード中心のデスクトップ利用において [Jiku](/ja/jiku/) の導入は必須ではありません。
+> Koma は単体で完結する Wayland コンポジタです。[Jiku](/ja/jiku/) をインストールしなくても問題なく利用できます。
 
-## システム要件
+## 配布チャネル一覧
 
-Linux 上で [komawm/koma](https://github.com/komawm/koma) をビルドするには、固定ツールチェーン `Rust 1.100.0` と標準的な Wayland / DRM 開発ライブラリ（`libseat`、`libinput`、`libudev`、`libgbm`、`libxkbcommon`、`libdisplay-info`、`mesa`）が必要です。X11 クライアント互換は外部の `xwayland-satellite` に委譲されます。
+各ディストリビューション向けパッケージ定義は [komawm/packaging](https://github.com/komawm/packaging) で管理され、GitHub Releases および Cloudflare R2 CDN（`https://cdn.komawm.org`）経由で配信されます。
 
-## ソースからのビルド手順
+| プラットフォーム / チャネル | 配布形式 | ステータス / 対象 |
+| :--- | :--- | :--- |
+| **Debian / Ubuntu** | 署名付き `deb822` APT（`https://cdn.komawm.org/apt`）+ `.deb`（`amd64`, `arm64`） | nFPM `.deb` + `SHA256SUMS` |
+| **Arch Linux** | `PKGBUILD`（`koma`, `koma-bin`）+ `.pkg.tar.zst`（`x86_64`, `aarch64`） | QEMU/KVM Arch `10/10` スモーク合格 |
+| **Fedora / RHEL / openEuler** | Copr / nFPM `.rpm`（`x86_64`, `aarch64`） | Spec + nFPM パイプライン |
+| **Alpine Linux** | `APKBUILD` / nFPM `.apk`（`x86_64`, `aarch64`） | musl パッケージング |
+| **NixOS / Nix** | `komawm/koma` `flake.nix` 委譲 + Cachix（`x86_64-linux`, `aarch64-linux`） | Nix モジュールテンプレート |
+| **FreeBSD `15+`** | Ports `Makefile` + `pkg` マニフェスト（`amd64`, `aarch64`） | FreeBSD `15.1-RELEASE` VM 検証済み |
+| **OpenBSD `8+`** | Ports `Makefile`（`amd64`, `aarch64`） | 実験的テンプレート |
+| **Homebrew (Linuxbrew)** | Formula `koma.rb`（`x86_64`, `aarch64`） | Linux バイナリ用 Formula |
+| **汎用 Linux アーカイブ** | `koma-<ver>-x86_64-unknown-linux-gnu.tar.gz` + `SHA256SUMS` | 自己完結型アーカイブ |
 
-リポジトリを取得し、ロックされた依存関係でリリースバイナリを生成します。
+## Debian / Ubuntu（署名付き `deb822` APT）
+
+`https://cdn.komawm.org/apt` から GPG キーリングと `deb822` リポジトリ設定を導入します。
+
+```bash
+curl -fsSL https://cdn.komawm.org/apt/setup.sh | sudo sh
+sudo apt update
+sudo apt install koma
+```
+
+手動で `/etc/apt/sources.list.d/komawm.sources` を設定するか、`https://cdn.komawm.org/releases/` や GitHub Releases から `SHA256SUMS` 検証済みの `.deb` を直接導入することも可能です。
+
+## Arch Linux
+
+署名・ダイジェスト確認済みの `.pkg.tar.zst` を `pacman -U` で導入します。
+
+```bash
+sha256sum -c SHA256SUMS-archlinux
+sudo pacman -U koma-0.0.1-1-x86_64.pkg.tar.zst
+```
+
+`seatd`（または `systemd-libs`）、`libinput`、`mesa`、`libdisplay-info`、`libxkbcommon`、`wayland`、`pixman`、`libglvnd` が依存関係として解決されます。
+
+## Fedora / RHEL・Alpine・NixOS・BSD
+
+- **Fedora / RHEL**：nFPM または Copr ビルドの `.rpm` を導入します（`sudo dnf install ./koma-*.rpm`）。
+- **Alpine Linux**：ダイジェスト確認後に `.apk` を導入し（`sudo apk add --allow-untrusted ./koma-*.apk`）、`seatd` または `elogind` を有効化します。
+- **FreeBSD `15.1-RELEASE`**：`seatd`、`libinput`、`libudev-devd`、`mesa-libs`、`libdisplay-info`、`libxkbcommon`、`wayland` が必要です。
+- **OpenBSD `8+`**：`komawm/packaging/openbsd/` に実験的テンプレートを用意しています。
+
+## ソースからのビルド
+
+[komawm/koma](https://github.com/komawm/koma) のビルドには固定ツールチェーン **Rust `1.100.0`**（`rust-toolchain.toml`）と Wayland/DRM 開発ライブラリ（`libseat`、`libinput`、`libudev`、`libgbm`、`libxkbcommon`、`libdisplay-info`、`mesa`、`pixman`）が必要です。
 
 ```bash
 git clone https://github.com/komawm/koma.git
@@ -22,16 +64,17 @@ cargo build --release --locked -p koma -p komactl -p koma-mcp -p koma-overview
 ./target/release/koma --headless-check
 ```
 
-## ワークスペース構成（全 9 クレート）
+従来の X11 アプリ互換には外部ルートレスの [`xwayland-satellite`](https://github.com/Supreeeme/xwayland-satellite) を併用します。
 
-| クレート | 種別 | 役割と責務 |
-| :--- | :--- | :--- |
-| `koma-proto` | ライブラリ | IPC フレーミング、`SCM_RIGHTS` FD 転送、権限トークン、Epoch 識別子 |
-| `koma-model` | ライブラリ | Dwindle・Scrolling・Deck・BSP レイアウト、フローティング層、バネ物理 |
-| `koma-lua` | ライブラリ | [Phodopus](https://github.com/Xuepoo/phodopus) Lua 5.4 サンドボックス連携と LuaLS 型生成 |
-| `koma-render` | ライブラリ | Smithay シーングラフ、Dual-Kawase ブラー、角丸シェーダ、保護サーフェス遮蔽 |
-| `koma-seat` | ライブラリ | 仮想シート入力台帳および `TextInjectStrategy` テキスト注入 |
-| `koma` | バイナリ | Winit ネスト / TTY KMS バックエンド統合、Wayland プロトコル処理 |
-| `komactl` | バイナリ | 設定検証・ライブリロード・`gen-types`・管理 IPC クライアント |
-| `koma-mcp` | バイナリ | `koma-agent.sock` 向け stdio MCP ブリッジ |
-| `koma-overview` | バイナリ | Layer-Shell ワークスペース俯瞰コンパニオン |
+## セッション統合（`greetd`・`systemd --user`）
+
+パッケージ導入時には `koma-session`、`koma.desktop`、`koma.portal`、systemd ユーザーユニットが含まれます。
+
+```toml
+# /etc/greetd/config.toml 例
+[default_session]
+command = "agreety --cmd 'koma --session'"
+user = "greeter"
+```
+
+既定ログイン環境を置き換える前に、必ず `koma --winit`（ネスト実行）または別 VT での `koma --tty --spawn foot` で動作を確認してください。

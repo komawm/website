@@ -26,12 +26,21 @@
           }
         },
         {
+          "slug": "installation-and-quickstart",
+          "path": "getting-started/installation-and-quickstart.md",
+          "title": {
+            "en": "Installation, API Keys & First Run",
+            "zh-CN": "安装、密钥配置与首次运行",
+            "ja": "インストール・API キー設定・初回起動"
+          }
+        },
+        {
           "slug": "configuration",
           "path": "getting-started/configuration.md",
           "title": {
-            "en": "Daemon Config & Policy Sandbox",
-            "zh-CN": "守护进程配置与策略沙箱",
-            "ja": "デーモン設定とポリシーサンドボックス"
+            "en": "Daemon Config, DecisionCompiler & TTS",
+            "zh-CN": "守护进程配置、DecisionCompiler 与语音",
+            "ja": "デーモン設定・DecisionCompiler・TTS"
           }
         }
       ]
@@ -48,9 +57,37 @@
           "slug": "memory-tiers",
           "path": "memory-and-mcp/memory-tiers.md",
           "title": {
-            "en": "L0–L2 SQLite FTS5 Memory & Skills",
+            "en": "L0–L2 Memory Tiers & Staged Skills",
             "zh-CN": "L0–L2 三层记忆与技能审批门禁",
             "ja": "L0–L2 記憶階層とスキル承認ゲート"
+          }
+        },
+        {
+          "slug": "cli-mcp-and-jikubox",
+          "path": "memory-and-mcp/cli-mcp-and-jikubox.md",
+          "title": {
+            "en": "jiku CLI, MCP Server & JikuBox",
+            "zh-CN": "jiku 命令行、MCP 服务与 JikuBox",
+            "ja": "jiku CLI・MCP サーバー・JikuBox"
+          }
+        }
+      ]
+    },
+    {
+      "id": "roadmap-and-safety",
+      "title": {
+        "en": "Security & Roadmap",
+        "zh-CN": "安全边界与路线图",
+        "ja": "セキュリティとロードマップ"
+      },
+      "items": [
+        {
+          "slug": "security-and-roadmap",
+          "path": "roadmap-and-safety/security-and-roadmap.md",
+          "title": {
+            "en": "Zero-Unsafe Safety & v0.1.0 Roadmap",
+            "zh-CN": "零 Unsafe 安全边界与 v0.1.0 路线图",
+            "ja": "ゼロ Unsafe 安全境界と v0.1.0 ロードマップ"
           }
         }
       ]
