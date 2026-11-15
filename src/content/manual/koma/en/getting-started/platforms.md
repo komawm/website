@@ -1,34 +1,43 @@
 # ARM64, MacBook Linux & BSD
 
-Koma and Jiku are engineered around portable POSIX/Wayland foundations (`Smithay`, `libseat`/`seatd`, `libinput`, `rustix` `SCM_RIGHTS`, and pure-Rust [Phodopus](https://github.com/Xuepoo/phodopus) Lua 5.4) so hardware support extends cleanly beyond desktop `x86_64` Linux.
-
-## MacBook Running Linux (Apple Silicon & Intel)
-
-Linux on MacBook spans two distinct CPU and GPU architectures, both accounted for in [komawm/packaging](https://github.com/komawm/packaging):
-
-| MacBook Generation | CPU & Target Triple | Kernel / KMS Stack | Packaging & Config Notes |
-| :--- | :--- | :--- | :--- |
-| **Apple Silicon (`M1` / `M2` / `M3` / `M4`)** | `aarch64-unknown-linux-gnu` (`arm64`) | Fedora Asahi Remix / Debian / Arch ARM (`apple-dcp` KMS + Mesa `asahi` AGX EGL, **16 KiB page size**) | Built with `-Wl,-z,max-page-size=16384` so ELF segments map cleanly on 16K kernels; supports Retina fractional scale and 3-finger Magic Trackpad scrolling |
-| **Intel MacBook (`Core i5` / `i7` / `i9`)** | `x86_64-unknown-linux-gnu` (`amd64`) | Standard Linux / T2 Linux (`i915` iGPU or hybrid `amdgpu` dGPU) | Uses standard `x86_64` `.deb` / `.rpm` / `.pkg.tar.zst` artifacts; multi-GPU format negotiation (`Abgr2101010`, `Argb8888`) handles hybrid MacBook Pro models |
-
-```lua
--- Recommended Retina & Command-key tuning on MacBook Linux (~/.config/koma/init.lua)
-koma.output("eDP-1", { scale = 2.0 })
-koma.input({
-  mod_key = "Super", -- Maps to left/right Command (⌘) key on Apple keyboards
-  inherit_default_binds = true,
-  touchpad = { natural_scroll = true, tap_to_click = true },
-})
-```
-
-## ARM64 Workstations & SBCs
-
-Native `aarch64-unknown-linux-gnu` packages are built directly on ARM64 runners without QEMU emulation overhead, supporting Mesa Panfrost/Panthor, Freedreno (`msm`), V3D, and Vulkan/GLES2 Wayland stacks.
-
-## FreeBSD & OpenBSD Portability
+Koma and [Jiku](/jiku/) are built on portable POSIX and Wayland primitives (`Smithay`, `libseat`/`seatd`, `libinput`, `rustix` `SCM_RIGHTS` + `File` I/O, and pure-Rust [Phodopus](https://github.com/Xuepoo/phodopus) Lua 5.4) so support extends cleanly across `x86_64`, `aarch64` (`ARM64`), MacBook Linux hardware, and BSD operating systems.
 
 > [!NOTE]
-> FreeBSD and OpenBSD support is currently on the pre-`v0.1.0` portability track: CI cross-checks core protocol, layout model, and Lua crates against BSD targets while bare-metal BSD DRM/Wayland verification is underway.
+> **Verification Scope**: At `v0.0.1`, `x86_64` Arch Linux (`koma --tty` + `seatd` + `llvmpipe` software KMS) and FreeBSD `15.1-RELEASE` (`cargo check` / `cargo test` workspace build) are verified in isolated QEMU/KVM VMs. Bare-metal Apple Silicon, Intel MacBook, ARM64 SBCs, and OpenBSD `8+` runtime tests remain pending hardware/VM acceptance.
 
-- **FreeBSD (`x86_64` & `aarch64`)**: Pairs natively with `graphics/drm-kmod`, `sysutils/seatd` (`libseat`), `devel/libudev-devd`, and `graphics/wayland`. For Jiku, outer process isolation maps to FreeBSD `Capsicum` / `jail` primitives.
-- **OpenBSD (`amd64` & `arm64`)**: Targets Xenocara `drm` / `mesa` + OpenBSD `wayland` ports and `libinput-openbsd`, with Jiku sandboxing mapped to `pledge(2)` and `unveil(2)` in place of Linux-specific Landlock.
+## Apple Silicon MacBook (`M1`–`M4`, Asahi / Fedora / Arch ARM)
+
+Linux distributions running on Apple Silicon (`aarch64`) differ from desktop `x86_64` PCs in display geometry, memory page size, and trackpad ergonomics:
+
+1. **Notch & Camera Cutout `safe_area` Insets**: Built-in Liquid Retina XDR panels include top camera housing cutouts (`eDP-1`). Configure `safe_area` in `koma.monitor({...})` so tiled layouts and `wlr-layer-shell` bars stay clear of the notch:
+   ```lua
+   koma.monitor({
+       output = "eDP-1",
+       scale = "auto",
+       safe_area = { top = 38, bottom = 0, left = 0, right = 0 },
+       allow_non_desktop = false,
+   })
+   ```
+2. **`16 KiB` Kernel Page Alignment**: Apple Silicon Linux kernels use `16 KiB` pages (`PAGESIZE = 16384`). Koma's `SCM_RIGHTS` `memfd` / SHM frame transport queries runtime page alignment rather than hardcoding `4096`-byte pages, and `Phodopus` Lua heaps require zero JIT `mprotect` executable pages (`W^X` safe).
+3. **Force Touch Clickpad Ergonomics**: Enable `click_method = "clickfinger"` and tuned `pinch_sensitivity` in `koma.input({ touchpad = { ... } })` for one/two/three-finger clickfinger parity alongside `3`/`4`-finger workspace & overview gestures.
+4. **Apple DRM / Mesa Stack**: Requires kernel `apple_drm` / `dcp` + Mesa `asahi` (`GL_OES_EGL_image` / `zwp_linux_dmabuf_v1`).
+
+## Intel MacBook Linux (T2 & Non-T2)
+
+- **HiDPI Fractional Scaling**: Retina `2560x1600` / `2880x1800` / `3072x1920` panels use `scale = "auto"` (or explicit `scale = 2.0` / `1.6`) via `wp-fractional-scale-v1` + `wp-viewporter`.
+- **Non-Desktop Connectors**: Touch Bar / virtual VR connectors marked non-desktop are skipped automatically (`allow_non_desktop = false`).
+- **Dual-GPU / Hybrid Macs**: Set `max_bpc = 10` if needed on external Thunderbolt displays, and test `--tty` on a spare VT before migrating from `seatd` / `systemd-logind`.
+
+## Generic `ARM64` (`aarch64`) Linux
+
+- Packaging recipes in [komawm/packaging](https://github.com/komawm/packaging) define `aarch64` / `arm64` targets across Debian/Ubuntu, Arch Linux ARM, Fedora/Copr, Alpine, NixOS (`aarch64-linux`), and Homebrew.
+- Keep `koma.appearance({ blur = { enabled = false } })` on low-power ARM64 SBCs if Dual-Kawase multipass blur saturates memory bandwidth.
+
+## FreeBSD `15.1-RELEASE` & OpenBSD `8+`
+
+| OS | Status at `v0.0.1` | Seat & Input Stack | Notes |
+| :--- | :--- | :--- | :--- |
+| **FreeBSD `15.1-RELEASE`** | **VM Verified (`cargo check` / `cargo test` PASS)** | `seatd` + `libudev-devd` + `libinput` + `evdev` | Uses `rustix` `shm_open` (`koma-proto/src/scm_unix.rs`), `kqueue`/polling fallback for config reload (`config_watcher.rs`), and `LOCAL_PEERCRED`/`getpeereid` for same-UID socket checks |
+| **OpenBSD `8+`** | **Experimental Template** | `wscons` / `libinput` / `pledge`-aware path | Ports template in `komawm/packaging/openbsd/`; runtime DRM/seatd verification pending |
+
+On FreeBSD, ensure `seatd` is running (`sysrc seatd_enable="YES" && service seatd start`), your user belongs to `video`, and `XDG_RUNTIME_DIR` points to a user-owned `0700` directory before testing `koma`.

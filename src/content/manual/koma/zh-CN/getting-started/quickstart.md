@@ -1,32 +1,66 @@
 # 会话启动与默认快捷键
 
-> [!NOTE]
-> 当 `koma.input` 中保持默认的 `inherit_default_binds = true` 时，Koma 开箱即内置一套兼容 Hyprland 肌肉记忆的默认键位表。你在 `init.lua` 中调用 `koma.bind(...)` 只会原地覆盖同名组合键，不会清空其余默认快捷键；若需移除单个默认键位可调用 `koma.unbind(chord)`。
+> [!TIP]
+> Koma 内置了完整的 Hyprland 风格默认快捷键表（默认 `inherit_default_binds = true`）。即使尚未创建 `~/.config/koma/init.lua`，启动后也能立即打开终端、平铺/浮动窗口、切换工作区与热重载配置。
 
-## 嵌套窗口预览与 TTY 启动
+## 启动模式（`koma [OPTIONS]`）
 
-调优配置或测试脚本时，可在现有 Wayland 会话内以 `--winit` 嵌套窗口模式启动，或在隔离虚拟机终端使用 `--tty` 启动：
+Koma 会在打开任何显示设备、座席或 DRM 节点之前完成纯参数解析：
 
-```bash
-# 启动前静态校验 Lua 配置与执行配额
-komactl validate ~/.config/koma/init.lua
-
-# 在现有 Wayland 桌面中以嵌套窗口运行
-koma --winit --config ~/.config/koma/init.lua
-
-# 在隔离 VM 的 TTY 会话中启动并拉起 foot 终端
-koma --tty --spawn foot
-```
-
-## 内置默认快捷键速查
-
-| 快捷键组合 | 默认动作 | 备注说明 |
+| 启动参数 | 后端与行为 | 典型场景 |
 | :--- | :--- | :--- |
-| `Mod + Return` | 启动终端（`foot`） | 可通过 `koma.bind` 替换为 Ghostty 等 |
-| `Mod + Q` | 关闭当前聚焦窗口 | 发送标准 Wayland 关闭请求 |
-| `Mod + H / J / K / L` | 四向移动焦点 | 同时兼容 Dwindle 树与 Scrolling 滚动列 |
-| `Mod + Shift + H / J / K / L` | 移动窗口或调整列位置 | 保持确定性布局树不变量 |
-| `Mod + V` / `Mod + F` | 切换浮动层 / 全屏状态 | 单窗口状态平滑过渡 |
-| `Mod + S` | 呼出或收起 `special` 暂存区 | 独立 Scratchpad 覆盖层 |
-| `Mod + G` | 人类最高优先级抢占屏障 | 低于 1ms 立即吊销 Agent 当前 Epoch 租约 |
-| `Mod + 1..9` | 切换至工作区 `1..9` | 支持多显示器独立工作区绑定 |
+| `koma --winit` | 通过 Smithay Winit 后端在现有 Wayland/X11 会话中开窗嵌套运行 | 在 Hyprland / Sway / GNOME 中安全调试配置 |
+| `koma --tty` | 通过 `libseat`（`seatd`/`logind`）、`udev`、`DRM/KMS` 与 `libinput` 直接接管 Linux VT | 裸机 tty 启动或隔离 QEMU/KVM `virtio-vga` 冒烟测试 |
+| `koma --session` | 登录会话模式（`koma-session`、`greetd`、`systemd --user`） | 自动导入 `WAYLAND_DISPLAY`、`DISPLAY`、`XDG_CURRENT_DESKTOP=koma`、`XDG_SESSION_TYPE=wayland`、`KOMA_INSTANCE_SIGNATURE` 至 `systemd --user` 与 D-Bus，并向 `$NOTIFY_SOCKET`/`$NOTIFY_FD` 发送 `READY=1` |
+| `koma --headless-check` | 离线结构与版本/状态机自检 | CI、打包校验与安装后冒烟检查 |
+| `--spawn <CMD>` | 就绪后启动指定进程 | 如 `koma --winit --spawn foot` 或 `koma --tty --spawn ghostty` |
+| `-c, --config <PATH>` | 覆盖默认 `$XDG_CONFIG_HOME/koma/init.lua` 路径 | 测试临时或备用 Lua 配置 |
+
+> [!NOTE]
+> 不显式指定后端时，若检测到 `WAYLAND_DISPLAY` 或 `DISPLAY`（非 `--session` 模式）则自动选择 `--winit`，否则选择 `--tty`。收到 `SIGTERM`、`SIGINT` 或 `SIGHUP` 时会执行干净退出（返回码 `0`）并清理运行时套接字。
+
+## 内置默认快捷键（`Mod`：TTY 下为 `Super`，嵌套 Winit 下为 `Alt`）
+
+| 组合键 | 绑定动作 | 说明 |
+| :--- | :--- | :--- |
+| `Mod + Return` | `spawn({ "ghostty" })` | 启动默认终端 |
+| `Mod + Q` | `window.close()` | 关闭当前聚焦窗口 |
+| `Mod + V` | `window.float_toggle()` | 切换窗口浮动状态 |
+| `Mod + F` | `window.fullscreen_toggle()` | 切换全屏 |
+| `Mod + P` | `window.pseudotile_toggle()` | 切换 Dwindle 伪平铺 |
+| `Mod + E` | `dwindle.toggle_split()` | 切换 Dwindle 水平/垂直分割方向 |
+| `Mod + H / J / K / L` | `focus.left/down/up/right()` | 按方向移动焦点 |
+| `Mod + Shift + H / J / K / L` | `window.move_direction(...)` | 按方向移动或交换窗口 |
+| `Mod + 1..9` | `workspace.focus("1".."9")` | 切换至工作区 `1`–`9` |
+| `Mod + Shift + 1..9` | `window.move_to_workspace("1".."9")` | 将当前窗口移动至工作区 `1`–`9` |
+| `Mod + R` / `Mod + Ctrl + R` | `scrolling.switch_preset_column_width()` | 正向/反向循环切换滚动列预设宽度 |
+| `Mod + Ctrl + Shift + R` | `scrolling.switch_preset_window_height()` | 循环切换滚动列窗口高度预设 |
+| `Mod + C` / `Mod + M` | `scrolling.center_column()` / `maximize_column()` | 居中或最大化当前滚动列 |
+| `Mod + W` | `scrolling.toggle_column_tabbed_display()` | 切换当前列多窗口标签页模式 |
+| `Mod + Comma` / `Mod + Period` | `scrolling.consume_window_into_column()` / `expel_window_from_column()` | 并入当前列或从当前列拆出 |
+| `Mod + BracketLeft` / `BracketRight` | `scrolling.consume_or_expel_window_left/right()` | 向左或向右并入/拆出列 |
+| `Mod + S` / `Mod + Shift + S` | `scratchpad.toggle()` / `move_window()` | 呼出/隐藏暂存区或将窗口移入暂存区 |
+| `Mod + Tab` | `overview.toggle()` | 打开/关闭 `koma-overview` 全局工作区概览 |
+| `Mod + MouseLeft` / `MouseRight` | `window.drag_move()` / `drag_resize()` | 鼠标拖拽移动或缩放窗口 |
+| `Mod + WheelScrollDown / Up` | `workspace.focus_next()` / `focus_prev()` | 滚轮切换工作区（`150 ms` 防抖） |
+| `Mod + WheelScrollLeft / Right` | `deck.cycle_prev()` / `cycle_next()` | 滚轮在 Deck/Stash 间轮换窗口（`150 ms` 防抖） |
+| `Mod + Shift + R` | `compositor.reload_config()` | 热重载 `init.lua` |
+| `Mod + Shift + E` | `compositor.quit()` | 安全退出合成器 |
+| `Mod + G`（人类抢占屏障） | 立即人类抢占 | `< 1 ms` 吊销智能体写租约并触发 `4091 ERR_HUMAN_PREEMPTED` |
+
+## 全局概览与一键熔断（`Mod + Tab` / `Mod + G`）
+
+- **全局空间概览（`koma-overview`）**：默认绑定为 `Mod + Tab`（若习惯 `Mod + O`，可在 `init.lua` 中添加 `koma.bind("Mod + O", koma.act.overview.toggle())`）。通过 `koma-admin.sock` 读取 `scene.inventory` 渲染各工作区缩略网格。
+- **人类优先急停（`Mod + G`）**：按下 `Mod + G` 或产生真实物理键鼠输入会立即暂停智能体在受管工作区上的执行租约，防止人与智能体抢夺焦点或指针。
+
+## 借助 `xwayland-satellite` 运行传统 X11 应用
+
+Koma 不在 Ring 0 合成器内直接内嵌 `Xwayland`，而是通过外部无根 [`xwayland-satellite`](https://github.com/Supreeeme/xwayland-satellite) 按需隔离兼容：
+
+```lua
+koma.xwayland({
+    enabled = true,
+    -- path = "/usr/bin/xwayland-satellite", -- 可选：显式指定二进制路径
+    isolate_agent_workspaces = true,        -- 禁止 X11 客户端接入智能体无头工作区
+})
+```

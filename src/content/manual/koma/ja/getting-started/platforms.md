@@ -1,34 +1,43 @@
 # ARM64・MacBook Linux・BSD 対応
 
-Koma と Jiku は移植性の高い基盤（`Smithay`、`libseat`/`seatd`、`libinput`、`rustix` `SCM_RIGHTS`、純 Rust 製 Lua 5.4 [Phodopus](https://github.com/Xuepoo/phodopus)）上に構築されており、一般的な `x86_64` PC だけでなく **ARM64 環境**、**Linux を導入した MacBook（Apple Silicon / Intel）**、および **FreeBSD / OpenBSD** を見据えて設計されています。
-
-## Linux を導入した MacBook（Apple Silicon & Intel）
-
-MacBook 上の Linux は世代によってアーキテクチャが異なりますが、[komawm/packaging](https://github.com/komawm/packaging) は双方をサポートします。
-
-| MacBook 世代 | CPU とターゲットトリプル | カーネル / KMS ドライバ構成 | パッケージング・設定のポイント |
-| :--- | :--- | :--- | :--- |
-| **Apple Silicon（`M1` / `M2` / `M3` / `M4`）** | `aarch64-unknown-linux-gnu`（`arm64`） | Fedora Asahi Remix / Debian / Arch ARM（`apple-dcp` KMS + Mesa `asahi` EGL・**16 KiB ページサイズ**） | 16K ページカーネルでそのまま起動できるよう `-Wl,-z,max-page-size=16384` を強制指定。Retina スケーリングと 3本指ジェスチャに対応 |
-| **Intel Mac（`Core i5` / `i7` / `i9`）** | `x86_64-unknown-linux-gnu`（`amd64`） | 標準 Linux / T2 Linux（Intel `i915` または `amdgpu` デュアル GPU） | 標準の `x86_64` パッケージをそのまま利用可能。ハイブリッド GPU 搭載 MacBook Pro のフォーマット折衝にも対応 |
-
-```lua
--- MacBook Linux 向け Retina スケール & Command キー設定例 (~/.config/koma/init.lua)
-koma.output("eDP-1", { scale = 2.0 })
-koma.input({
-  mod_key = "Super", -- Apple キーボードの Command (⌘) キーに対応
-  inherit_default_binds = true,
-  touchpad = { natural_scroll = true, tap_to_click = true },
-})
-```
-
-## ARM64 ワークステーション・SBC
-
-ARM64 ネイティブランナー上で `aarch64-unknown-linux-gnu` バイナリ（`.deb` / `.rpm` / `.tar.zst`）をビルドし、Panfrost/Panthor や Freedreno などの Mesa GBM/EGL ドライバと連携します。
-
-## FreeBSD・OpenBSD ポータビリティ
+Koma と [Jiku](/ja/jiku/) は移植性の高い POSIX／Wayland 基盤（`Smithay`、`libseat`/`seatd`、`libinput`、`rustix` `SCM_RIGHTS`＋`File` I/O、純 Rust 製 [Phodopus](https://github.com/Xuepoo/phodopus) Lua 5.4）で構築されており、`x86_64`・`aarch64`（`ARM64`）・MacBook Linux・BSD を視野に入れて設計されています。
 
 > [!NOTE]
-> FreeBSD および OpenBSD は現在 `v0.1.0` に向けた移植トラックにあります。CI では BSD ターゲット向けのコア検証を実施しており、実機 DRM/Wayland 承認を順次進めています。
+> **検証範囲（`v0.0.1`）**：現時点で隔離 QEMU/KVM VM 上の `x86_64` Arch Linux（`koma --tty`＋`seatd`＋`llvmpipe` ソフトウェア KMS スモーク）および FreeBSD `15.1-RELEASE`（ワークスペースビルド／テスト）を検証済みです。Apple Silicon 実機、Intel MacBook、ARM64 SBC、OpenBSD `8+` の実機ランタイム検証は今後の承認対象です。
 
-- **FreeBSD（`x86_64` / `aarch64`）**：`drm-kmod`、`seatd`（`libseat`）、`libudev-devd`、`wayland` と組み合わせます。Jiku のプロセス隔離は `Capsicum` へマッピングされます。
-- **OpenBSD（`amd64` / `arm64`）**：Xenocara `drm`/`mesa`、`libinput-openbsd`、`wayland` ポートを対象とし、Jiku の隔離には Linux の Landlock に代わり `pledge(2)` と `unveil(2)` を用います。
+## Apple Silicon MacBook（`M1`–`M4`、Asahi / Fedora / Arch ARM）
+
+Apple Silicon（`aarch64`）上の Linux では、標準的な `x86_64` PC と異なるハードウェア要件へ対応しています。
+
+1. **ノッチ領域の `safe_area` インセット**：内蔵 Liquid Retina XDR パネル（`eDP-1`）のカメラ切り欠きを避けるため、`koma.monitor({...})` に安全余白を設定できます。
+   ```lua
+   koma.monitor({
+       output = "eDP-1",
+       scale = "auto",
+       safe_area = { top = 38, bottom = 0, left = 0, right = 0 },
+       allow_non_desktop = false,
+   })
+   ```
+2. **`16 KiB` ページサイズ整合**：Apple Silicon カーネルは `16 KiB` ページ（`PAGESIZE = 16384`）を使用します。Koma の `SCM_RIGHTS` `memfd`/SHM 転送は実行時ページサイズを参照し、`Phodopus` Lua VM も JIT 実行可能ページ（`mprotect`）を使わないため `W^X` 環境で安全に動作します。
+3. **Force Touch クリックパッド**：`koma.input({ touchpad = { ... } })` で `click_method = "clickfinger"` や `pinch_sensitivity` を調整できます。
+4. **グラフィックス**：`apple_drm` / `dcp` カーネルドライバおよび Mesa `asahi`（`zwp_linux_dmabuf_v1`）を利用します。
+
+## Intel MacBook Linux（T2 / 非 T2）
+
+- **HiDPI フラクショナルスケーリング**：`scale = "auto"` または明示値により `wp-fractional-scale-v1` + `wp-viewporter` でスケーリングします。
+- **非デスクトップ出力の除外**：Touch Bar や VR HMD などは `allow_non_desktop = false` により自動スキップされます。
+- **外部 Thunderbolt ディスプレイ**：必要に応じて `max_bpc = 10` を指定し、まず別 VT で `--tty` 動作を確認してください。
+
+## 汎用 `ARM64`（`aarch64`）Linux
+
+- [komawm/packaging](https://github.com/komawm/packaging) は Debian/Ubuntu、Arch Linux ARM、Fedora/Copr、Alpine、NixOS（`aarch64-linux`）、Homebrew の各 `aarch64`/`arm64` パッケージを定義しています。
+- メモリ帯域が限られる SBC では `koma.appearance({ blur = { enabled = false } })` で Dual-Kawase ブラーを無効化できます。
+
+## FreeBSD `15.1-RELEASE` および OpenBSD `8+`
+
+| OS | `v0.0.1` 時点の状態 | シート／入力スタック | 技術メモ |
+| :--- | :--- | :--- | :--- |
+| **FreeBSD `15.1-RELEASE`** | **VM 検証済み（`cargo check` / `cargo test` 合格）** | `seatd` + `libudev-devd` + `libinput` + `evdev` | `rustix` `shm_open`（`koma-proto/src/scm_unix.rs`）、クロスプラットフォーム監視フォールバック（`config_watcher.rs`）、`LOCAL_PEERCRED`/`getpeereid` 認証を使用 |
+| **OpenBSD `8+`** | **実験的テンプレート** | `wscons` / `libinput` | Ports テンプレートは `komawm/packaging/openbsd/` に配置（実機ランタイム未検証） |
+
+FreeBSD で試用する際は `seatd` を有効化し（`sysrc seatd_enable="YES" && service seatd start`）、ユーザーを `video` グループへ追加のうえ、`0700` 権限の `XDG_RUNTIME_DIR` を設定してください。

@@ -20,18 +20,18 @@
           "slug": "home",
           "path": "getting-started/home.md",
           "title": {
-            "en": "Home",
-            "zh-CN": "首页",
-            "ja": "ホーム"
+            "en": "Home & Architecture",
+            "zh-CN": "首页与架构总览",
+            "ja": "ホームとアーキテクチャ概要"
           }
         },
         {
           "slug": "installation",
           "path": "getting-started/installation.md",
           "title": {
-            "en": "Installation & Acceptance Boundaries",
-            "zh-CN": "安装指南与验收边界",
-            "ja": "インストールと承認境界"
+            "en": "Installation & Channels",
+            "zh-CN": "多发行版安装与渠道",
+            "ja": "インストールと配布チャネル"
           }
         },
         {
@@ -66,9 +66,36 @@
           "slug": "init-lua",
           "path": "configuration/init-lua.md",
           "title": {
-            "en": "Layouts, Appearance & Overrides",
-            "zh-CN": "布局模式、视觉外观与增量覆盖",
-            "ja": "レイアウト・外観・キー上書き"
+            "en": "Lua Sandbox, Layouts & Appearance",
+            "zh-CN": "Lua 沙箱、布局与视觉外观",
+            "ja": "Lua サンドボックス・レイアウト・外観"
+          }
+        },
+        {
+          "slug": "monitors-and-input",
+          "path": "configuration/monitors-and-input.md",
+          "title": {
+            "en": "Multi-Monitor 2D Layout & Input",
+            "zh-CN": "多显示器 2D 布局与输入设备",
+            "ja": "マルチモニター 2D 配置と入力デバイス"
+          }
+        },
+        {
+          "slug": "window-rules",
+          "path": "configuration/window-rules.md",
+          "title": {
+            "en": "Window Rules & Protected Surfaces",
+            "zh-CN": "窗口规则与受保护表面",
+            "ja": "ウィンドウルールと保護サーフェス"
+          }
+        },
+        {
+          "slug": "animations-and-rice",
+          "path": "configuration/animations-and-rice.md",
+          "title": {
+            "en": "Hooke Spring Physics, Bezier Curves & Ricing",
+            "zh-CN": "胡克弹簧物理、贝塞尔曲线与视觉美化",
+            "ja": "フックの法則バネ物理・ベジェ曲線・外観カスタマイズ"
           }
         },
         {
@@ -76,8 +103,36 @@
           "path": "configuration/lua-types.md",
           "title": {
             "en": "LuaLS Type Completion (koma-types)",
-            "zh-CN": "LuaLS 智能补全接入 (koma-types)",
+            "zh-CN": "LuaLS 类型补全接入 (koma-types)",
             "ja": "LuaLS 型補完の導入 (koma-types)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "protocols-and-tools",
+      "title": {
+        "en": "Protocols & CLI Tools",
+        "zh-CN": "协议支持与命令行工具",
+        "ja": "プロトコルと CLI ツール"
+      },
+      "items": [
+        {
+          "slug": "wayland-protocols",
+          "path": "protocols-and-tools/wayland-protocols.md",
+          "title": {
+            "en": "Wayland Protocols, Portals & IME",
+            "zh-CN": "Wayland 协议、Portal 与输入法",
+            "ja": "Wayland プロトコル・Portal・IME"
+          }
+        },
+        {
+          "slug": "cli-and-overview",
+          "path": "protocols-and-tools/cli-and-overview.md",
+          "title": {
+            "en": "komactl CLI & koma-overview",
+            "zh-CN": "komactl 命令行与全局概览",
+            "ja": "komactl CLI と koma-overview"
           }
         }
       ]
@@ -97,6 +152,15 @@
             "en": "Dual Sockets, Epoch Leases & MCP",
             "zh-CN": "双通道套接字、Epoch 租约与 MCP",
             "ja": "二系統ソケット・Epoch リース・MCP"
+          }
+        },
+        {
+          "slug": "troubleshooting",
+          "path": "ipc/troubleshooting.md",
+          "title": {
+            "en": "Diagnostics & Troubleshooting FAQ",
+            "zh-CN": "诊断与常见排障指南",
+            "ja": "診断とトラブルシューティング FAQ"
           }
         }
       ]
