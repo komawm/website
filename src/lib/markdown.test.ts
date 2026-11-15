@@ -20,4 +20,21 @@ describe("markdown Shiki external token classes", () => {
       expect(css).toContain(`.${cls}{`);
     }
   });
+
+  test("preserves semantic MathML and .math-block/.math-inline while stripping unsafe HTML/style/scripts", async () => {
+    const sample = [
+      "# Math",
+      "",
+      '<div class="math-block" style="color:red"><math display="block"><mi>m</mi><mover><mi>x</mi><mo>¨</mo></mover></math></div>',
+      "",
+      'Inline <span class="math-inline"><math><mi>k</mi><mo>=</mo><mn>420</mn></math></span> <script>alert(1)</script><span onclick="x()">ok</span>',
+      "",
+    ].join("\n");
+    const html = await renderMarkdownToHtml(sample);
+    expect(html).toContain('<div class="math-block"><math display="block">');
+    expect(html).toContain('<span class="math-inline"><math>');
+    expect(html).not.toContain("style=");
+    expect(html).not.toContain("<script");
+    expect(html).not.toContain("onclick=");
+  });
 });

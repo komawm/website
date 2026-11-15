@@ -128,8 +128,8 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
         desc: "Pure window-tree state transitions across Shoji, Dwindle, Scrolling, and Monocle modes with multi-monitor DRM/KMS isolation and zero implicit side effects.",
       },
       {
-        title: "Dual-Kawase & Virtual Seat",
-        desc: "Multi-pass rounded-clipping GPU shaders paired with virtual-seat input isolation so concurrent desktop automation never steals your physical cursor or focus.",
+        title: "Hooke Spring Physics, Bezier & Shaders",
+        desc: "Semi-implicit Euler damped Hooke springs (mx'' + cx' + kx = 0), custom Cubic Bezier curves, Dual-Kawase blur, gradient borders, and virtual-seat input isolation.",
       },
       {
         title: "Phodopus Lua 5.4 & Dual IPC",
@@ -242,8 +242,8 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
         desc: "在障子格（Shoji）、Dwindle、横向滚动与单片（Monocle）模式间实现纯状态树切换，兼顾多显示器 DRM/KMS 隔离。",
       },
       {
-        title: "Dual-Kawase 着色与虚拟座席",
-        desc: "多通道圆角裁剪 GPU 渲染管线配合独立虚拟座席输入，确保并发桌面自动化不会抢占物理键鼠焦点。",
+        title: "Hooke 弹簧物理、贝塞尔与着色器美学",
+        desc: "阻尼胡克定律半隐式欧拉弹簧与自定义三次贝塞尔动画引擎，配合 Dual-Kawase 模糊、渐变动效边框与独立虚拟座席隔离。",
       },
       {
         title: "Phodopus Lua 5.4 与双通道 IPC",
@@ -356,8 +356,8 @@ export const UI_MESSAGES: Readonly<Record<SiteLocale, UiMessages>> = {
         desc: "障子（Shoji）・Dwindle・横スクロール・Monocle を純粋な状態木で切り替え、マルチモニタの DRM/KMS 出力をクリーンに分離します。",
       },
       {
-        title: "Dual-Kawase 描画と仮想シート",
-        desc: "マルチパス角丸シェーダと仮想シート入力分離により、裏側の GUI 自動操作が物理カーソルやフォーカスを奪いません。",
+        title: "フックばね物理・ベジェとシェーダ装飾",
+        desc: "減衰フックの法則の半陰的オイラーばねとカスタム三次ベジェ曲線、Dual-Kawase ブラー、グラデーション枠、仮想シート入力分離を統合します。",
       },
       {
         title: "Phodopus Lua 5.4 と二系統 IPC",

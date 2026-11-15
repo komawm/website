@@ -12,6 +12,7 @@ import { createHash } from "node:crypto";
 import rehypeShiki from "@shikijs/rehype";
 import GithubSlugger from "github-slugger";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
@@ -86,6 +87,125 @@ function walkShikiElements(node: HastNode): void {
   }
 }
 
+const ALLOWED_HTML_TAGS = new Set([
+  "a",
+  "annotation",
+  "blockquote",
+  "br",
+  "code",
+  "del",
+  "details",
+  "div",
+  "em",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "hr",
+  "img",
+  "input",
+  "kbd",
+  "li",
+  "math",
+  "menclose",
+  "mfrac",
+  "mi",
+  "mn",
+  "mo",
+  "mover",
+  "mroot",
+  "mrow",
+  "ms",
+  "mspace",
+  "msqrt",
+  "msub",
+  "msubsup",
+  "msup",
+  "mtable",
+  "mtd",
+  "mtext",
+  "mtr",
+  "munder",
+  "munderover",
+  "ol",
+  "p",
+  "pre",
+  "semantics",
+  "span",
+  "strong",
+  "sub",
+  "summary",
+  "sup",
+  "svg",
+  "path",
+  "table",
+  "tbody",
+  "td",
+  "th",
+  "thead",
+  "tr",
+  "ul",
+]);
+
+function isSafeUrl(raw: unknown): boolean {
+  if (typeof raw !== "string") return false;
+  const trimmed = raw.trim();
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("./") ||
+    trimmed.startsWith("../")
+  ) {
+    return true;
+  }
+  return /^https?:\/\//iu.test(trimmed) || /^mailto:/iu.test(trimmed);
+}
+
+function sanitizeNodeList(nodes: HastNode[]): HastNode[] {
+  const clean: HastNode[] = [];
+  for (const node of nodes) {
+    if (node.type === "comment" || node.type === "raw") {
+      continue;
+    }
+    if (node.type === "element") {
+      const tag = node.tagName?.toLowerCase() ?? "";
+      if (!ALLOWED_HTML_TAGS.has(tag)) {
+        continue;
+      }
+      if (node.properties) {
+        for (const key of Object.keys(node.properties)) {
+          const lower = key.toLowerCase();
+          if (lower === "style" || lower.startsWith("on")) {
+            delete node.properties[key];
+            continue;
+          }
+          if (
+            (lower === "href" || lower === "src") &&
+            !isSafeUrl(node.properties[key])
+          ) {
+            delete node.properties[key];
+          }
+        }
+      }
+    }
+    if (Array.isArray(node.children)) {
+      node.children = sanitizeNodeList(node.children);
+    }
+    clean.push(node);
+  }
+  return clean;
+}
+
+function rehypeSanitizeSafeHtml() {
+  return (tree: HastNode): void => {
+    if (Array.isArray(tree.children)) {
+      tree.children = sanitizeNodeList(tree.children);
+    }
+  };
+}
+
 function rehypeShikiTokenClasses() {
   return (tree: HastNode): void => {
     walkShikiElements(tree);
@@ -120,7 +240,9 @@ async function compileMarkdown(markdown: string): Promise<string> {
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkAlert)
-    .use(remarkRehype)
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeRaw)
+    .use(rehypeSanitizeSafeHtml)
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: "wrap" })
     .use(rehypeShiki, {
