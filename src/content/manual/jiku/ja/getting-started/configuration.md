@@ -113,6 +113,8 @@ jiku.config{
 
 `jikud --migrate-config --config ~/.config/jiku/config.toml --out ~/.config/jiku/config.lua` で既存ファイルを変換できます。ジェネレータは `--force` なしの上書きを拒否し、出力が同一設定へ再読込されることを検証します。
 
+移行後は元の `config.toml` を削除するか名前を変更してください。既定の探索では先に読み込まれますが、生成された `config.lua` が定義するセクションをすべて置き換えるため、以後の TOML 編集は反映されません。
+
 ## Lua 設定（`~/.config/jiku/init.lua`）と `jikud.service`
 
 `jikud` は OS やファイルシステム操作プリミティブを遮断したサンドボックス化 Lua 5.4 ランタイム上でポリシーフックを実行し、`systemd --user` ユニット（`jikud.service`）も提供します。

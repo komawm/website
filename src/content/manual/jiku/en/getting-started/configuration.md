@@ -113,6 +113,8 @@ jiku.config{
 
 Convert an existing file with `jikud --migrate-config --config ~/.config/jiku/config.toml --out ~/.config/jiku/config.lua`. The generator refuses to overwrite without `--force` and verifies that its output reloads to an identical configuration.
 
+After migrating, remove or rename the original `config.toml`: the default search still loads it first, but the generated `config.lua` replaces every section it defines, so later TOML edits would have no effect.
+
 ## Lua Configuration (`~/.config/jiku/init.lua`) & `jikud.service`
 
 `jikud` runs user policy hooks inside a sandboxed Lua 5.4 runtime (blocking OS and filesystem primitives) and ships a `systemd --user` unit (`jikud.service`):

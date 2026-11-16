@@ -113,6 +113,8 @@ jiku.config{
 
 用 `jikud --migrate-config --config ~/.config/jiku/config.toml --out ~/.config/jiku/config.lua` 转换现有文件。生成器在缺少 `--force` 时拒绝覆盖，并校验输出能重新加载为完全相同的配置。
 
+迁移后请删除或重命名原 `config.toml`：默认搜索仍会先加载它，但生成的 `config.lua` 会替换其定义的所有顶层区段，之后对 TOML 的修改不会生效。
+
 ## Lua 策略配置（`~/.config/jiku/init.lua`）与 `jikud.service`
 
 `jikud` 在沙箱化的 Lua 5.4 运行时中执行用户策略钩子（禁用 OS 与文件原语），并提供 `systemd --user` 服务单元（`jikud.service`）：
