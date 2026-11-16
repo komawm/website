@@ -17,7 +17,7 @@ Jiku では、`v0.0.x` で実装済みの権限制御・隔離機構と、`v0.1.
 | :--- | :--- | :--- | :--- | :--- |
 | **オフライン `NoDecision + MinimalRaw`** | `0/4` | `69.64 px` | `136.46 px` | `9` |
 | **オフライン `Decision + EnrichedGrounding`** | `4/4` | `0.00 px` | `1.52 px` | `0` |
-| **ライブ ローカル `Qwen3VL-2B-Instruct-Q4_K_M`（`4096` ctx）** | 各セル `1/4`（`16/16` 回完了） | 平均レイテンシ `1209–2331 ms` | — | 小型 2B VLM での保守的な安全誤検知（`False Pos = true`） |
+| **ライブ ローカル小型 2B VLM（`4096` ctx）** | 各セル `1/4`（`16/16` 回完了） | 平均レイテンシ `1209–2331 ms` | — | 小型 2B VLM での保守的な安全誤検知（`False Pos = true`） |
 
 ![判定モデルとシステムグラウンディング有効時の VirtualPaint アブレーション結果](https://cdn.komawm.org/media/v0.0.1/ablation-decision-enriched.png "判定ゲートと SystemGroundingPack 有効時の VirtualPaint 出力（4/4 合格、Chamfer 誤差 1.52 px）。")
 

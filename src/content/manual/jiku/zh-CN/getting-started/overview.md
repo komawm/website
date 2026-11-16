@@ -22,9 +22,9 @@ Jiku 将屏幕状态判定、多步任务规划、小上下文预算管理、语
 
 | 角色 | 用途 | 默认模型与回退方式 |
 | :--- | :--- | :--- |
-| **判定请求（`[roles.decision_router]`）** | 快速界面状态检查、`grid_225` 坐标定位、安全门控与 `~/JikuBox` 分类 | `gemini-decision-1`（`GEMINI_API_KEY`）；未配置 Gemini 密钥时，自动回退到主规划模型并通过平衡括号 JSON 提取完成结构化判定 |
-| **规划模型（`[roles.planner]`）** | 多步骤工作区规划、判定置信度低于 `0.85` 时的接管处理以及技能草拟 | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash`（`thinking = false`），同时支持 OpenAI 兼容、`llama-server`、Google AI Studio 与 Anthropic 接口 |
-| **实时语音会话（可选）** | 实验性全双工实时语音传输 | Gemini `BidiGenerateContent` WebSocket（默认关闭；PipeWire 实时麦克风采集计划在 `v0.1.0` 提供） |
+| **判定请求（`[roles.decision_router]`）** | 快速界面状态检查、`grid_225` 坐标定位、安全门控与 `~/JikuBox` 分类 | 可选专用判定模型（`JIKU_DECISION_API_KEY`，原生零输出 Token 端点）；未配置时自动回退到主规划模型并通过平衡括号 JSON 提取完成结构化判定 |
+| **规划模型（`[roles.planner]`）** | 多步骤工作区规划、判定置信度低于 `0.85` 时的接管处理以及技能草拟 | 任意文本/VLM 模型（`JIKU_PLANNER_API_KEY`），支持 OpenAI 兼容、`llama-server`、Google AI Studio 与 Anthropic 接口 |
+| **实时语音会话（可选）** | 实验性全双工实时语音传输 | 全双工 `BidiGenerateContent` WebSocket 端点（默认关闭；PipeWire 实时麦克风采集计划在 `v0.1.0` 提供） |
 
 ## 观测 → 判定 → 规划 → 执行闭环
 

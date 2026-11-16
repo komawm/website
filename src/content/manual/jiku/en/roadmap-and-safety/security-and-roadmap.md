@@ -17,7 +17,7 @@ Reproducible `jiku bench run` benchmarks measure the effect of optional Decision
 | :--- | :--- | :--- | :--- | :--- |
 | **Offline `NoDecision + MinimalRaw`** | `0/4` | `69.64 px` | `136.46 px` | `9` |
 | **Offline `Decision + EnrichedGrounding`** | `4/4` | `0.00 px` | `1.52 px` | `0` |
-| **Live Local `Qwen3VL-2B-Instruct-Q4_K_M` (`4096` ctx)** | `1/4` per cell (`16/16` trials completed) | `1209–2331 ms` avg latency | — | Conservative 2B VLM safety false positives (`False Pos = true`) |
+| **Live local 2B VLM (`4096` ctx)** | `1/4` per cell (`16/16` trials completed) | `1209–2331 ms` avg latency | — | Conservative 2B VLM safety false positives (`False Pos = true`) |
 
 ![Decision + Enriched Grounding VirtualPaint ablation render](https://cdn.komawm.org/media/v0.0.1/ablation-decision-enriched.png "VirtualPaint output with Decision gating and SystemGroundingPack spatial grounding (4/4 pass, 1.52 px chamfer).")
 
