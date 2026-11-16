@@ -22,9 +22,9 @@ Jiku separates fast screen checks, multi-step task planning, small-context budge
 
 | Role | Purpose | Default Model & Fallback |
 | :--- | :--- | :--- |
-| **Decision prompt (`[roles.decision_router]`)** | Fast UI state checks, `grid_225` coordinate targeting, safety gates, and `~/JikuBox` classification | `gemini-decision-1` (`GEMINI_API_KEY`); automatically falls back to the planner model using balanced-JSON extraction and structured output when no Gemini key is set |
-| **Planner model (`[roles.planner]`)** | Multi-step task planning, fallback when decision confidence is below `0.85`, and skill drafting | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash` (`thinking = false`), plus OpenAI-compatible, `llama-server`, Google AI Studio, and Anthropic endpoints |
-| **Live voice session (optional)** | Experimental full-duplex voice transport | Gemini `BidiGenerateContent` WebSocket (disabled by default; live PipeWire microphone capture is planned for `v0.1.0`) |
+| **Decision prompt (`[roles.decision_router]`)** | Fast UI state checks, `grid_225` coordinate targeting, safety gates, and `~/JikuBox` classification | Optional dedicated decision model (`JIKU_DECISION_API_KEY`, native zero-output-token endpoint); automatically falls back to the planner model using balanced-JSON extraction and structured output when the role is unset |
+| **Planner model (`[roles.planner]`)** | Multi-step task planning, fallback when decision confidence is below `0.85`, and skill drafting | Any text/VLM model you configure (`JIKU_PLANNER_API_KEY`), including OpenAI-compatible, `llama-server`, Google AI Studio, and Anthropic endpoints |
+| **Live voice session (optional)** | Experimental full-duplex voice transport | Full-duplex `BidiGenerateContent` WebSocket endpoint (disabled by default; live PipeWire microphone capture is planned for `v0.1.0`) |
 
 ## Observe → Decide → Plan → Act Loop
 

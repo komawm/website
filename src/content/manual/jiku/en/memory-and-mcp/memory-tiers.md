@@ -29,7 +29,7 @@ When `stage_new_skills = true`, Jiku can propose reusable Lua or Markdown SOP sk
 
 ## Small-Context Budget & 4-Stage Compaction Waterfall
 
-For compact local models (`4096`–`8192` token windows such as `Qwen3VL-2B-Instruct-Q4_K_M` on `llama-server`), `context_budget` applies a deterministic compaction waterfall whenever prompt estimates cross `compaction_trigger_ratio` (`0.72`) while preserving `min_output_tokens` (`256`)–`reserved_output_tokens` (`768`):
+For compact local models (`4096`–`8192` token windows on `llama-server` or any small VLM), `context_budget` applies a deterministic compaction waterfall whenever prompt estimates cross `compaction_trigger_ratio` (`0.72`) while preserving `min_output_tokens` (`256`)–`reserved_output_tokens` (`768`):
 
 1. **`stage1_visual_roi_pruning`**: Keeps only the newest `keep_recent_images` (`1`) screenshots (`image_token_estimate = 512`), dropping stale historical frames.
 2. **`stage2_a11y_skeleton_folding`**: Folds verbose AT-SPI2 subtrees down to the `a11y_max_entries_small_ctx` (`28`) most relevant interactive `@snap:eN` nodes.

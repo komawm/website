@@ -25,27 +25,29 @@ image_token_estimate = 512
 keep_recent_images = 1
 a11y_max_entries_small_ctx = 28
 
-[providers.opencode_go]
-kind = "opencode_go"
-base_url = "https://opencode.ai/inference/go/openai/v1"
-api_key_env = "OPENCODE_GO_API_KEY"
+# Provider keys, endpoints, and model IDs are placeholders you replace.
+# `api_key_env` names the environment variable holding each provider key.
+[providers.primary]
+kind = "openai_compatible"       # any OpenAI-compatible text/VLM endpoint
+base_url = "https://your-planner-endpoint.example/v1"
+api_key_env = "JIKU_PLANNER_API_KEY"
 thinking = false
 
-[providers.gemini]
-kind = "google_gemini"
-base_url = "https://generativelanguage.googleapis.com/v1beta"
-api_key_env = "GEMINI_API_KEY"
+[providers.decision]
+kind = "google_gemini"           # required by native decision-endpoint drivers
+base_url = "https://your-decision-endpoint.example/v1beta"
+api_key_env = "JIKU_DECISION_API_KEY"
 
 [roles.planner]
-provider = "opencode_go"
-model = "deepseek-v4.1-flash"
+provider = "primary"
+model = "<primary-text-model-id>"
 driver = "turn_sse"
 thinking = false
 temperature = 0.2
 
 [roles.decision_router]
-provider = "gemini"
-model = "gemini-decision-1"      # Falls back to primary planner model if key is absent
+provider = "decision"
+model = "<decision-model-id>"      # Falls back to primary planner model if key is absent
 driver = "decisions"
 optional = true
 fallback_to_primary_text_model = true
@@ -70,6 +72,46 @@ Spatial grid dimensions and decision thresholds are configured under `[decision_
 - **Desktop Notifications (`[notify]`)**: `desktop_dbus = true`, `app_name = "Jiku"`, `notify_on = ["task_completed", "task_failed", "verification_needed", "skill_staged"]` dispatches notifications via `org.freedesktop.Notifications` / `notify-send`.
 - **Optional TTS (`[tts]`, disabled by default)**: Set `enabled = true` and choose `provider = "espeak_ng" | "irodori" | "voicevox" | "openai_speech" | "noop"`, `voice`, and `audio_sink` (`"auto"`, `"pw-play"`, `"aplay"`, `"silent"`, or custom command). Generates 20 ms RMS lip-sync vowel cues and supports barge-in interruption via `AudioPlaybackSink`.
 - **Companion Avatar Stage (`[avatar]`)**: `emit_cues = true` and `idle_gaze_follow_vseat = true` stream `Snapshot` / `AvatarCue` JSON packets and track active `vseat` pointer coordinates over `jiku avatar serve`.
+
+## `config.lua` (Sandboxed Lua Configuration)
+
+The same typed configuration is also accepted as a Lua document. Pick the format by extension, or keep `config.toml` as the base and let `config.lua` overlay the keys it changes.
+
+| Invocation | Loaded documents |
+| :--- | :--- |
+| `--config <PATH>` / `$JIKU_CONFIG` | exactly that file (`.toml` or `.lua`) |
+| default search, both files present | `config.toml`, then `config.lua` merged over it |
+| default search, one file present | that file only |
+
+```lua
+-- ~/.config/jiku/config.lua
+jiku.config{
+    daemon = { locale = "en-US", socket_name = "jiku.sock" },
+    providers = {
+        primary = {
+            kind = "openai_compatible",
+            base_url = "https://your-planner-endpoint.example/v1",
+            api_key_env = "JIKU_PLANNER_API_KEY",
+        },
+        decision = {
+            kind = "google_gemini",
+            base_url = "https://your-decision-endpoint.example/v1beta",
+            api_key_env = "JIKU_DECISION_API_KEY",
+        },
+    },
+    roles = {
+        planner = { provider = "primary", model = "<primary-text-model-id>", driver = "turn_sse" },
+        decision_router = { provider = "decision", model = "<decision-model-id>", driver = "decisions", optional = true },
+    },
+}
+```
+
+- **Field-level merge**: objects merge key by key; arrays and scalars replace. Repeated `jiku.config{...}` calls apply in order.
+- **Same sandbox as `init.lua`**: an 8 MiB heap ceiling, deterministic fuel, and no `io`, `os`, `dofile`, or `loadfile`. It cannot read the environment, so `api_key_env` stays a variable *name*.
+- **Strict schema**: unknown keys or wrong value types are rejected with the offending field path instead of silently defaulting.
+- **One validator**: both formats deserialize into the same configuration type and run the same semantic checks.
+
+Convert an existing file with `jikud --migrate-config --config ~/.config/jiku/config.toml --out ~/.config/jiku/config.lua`. The generator refuses to overwrite without `--force` and verifies that its output reloads to an identical configuration.
 
 ## Lua Configuration (`~/.config/jiku/init.lua`) & `jikud.service`
 

@@ -37,16 +37,16 @@ cargo +1.100.0 build --release --locked -p jikud -p jiku
 
 ## API キーと環境変数
 
-`jikud` は `config.toml` 内の `api_key_env` に指定された環境変数からのみ認証情報を読み取ります。`config.toml` に生の API キーを直接書かないでください。
+`jikud` は `config.toml` または `config.lua` の `api_key_env` に指定された環境変数からのみ認証情報を読み取ります。設定ファイルに生の API キーを直接書かないでください。
 
 | 環境変数 | 既定プロバイダ | 用途 |
 | :--- | :--- | :--- |
-| `OPENCODE_GO_API_KEY` | `opencode_go`（`deepseek-v4.1-flash`） | 主プランナー `[roles.planner]` および判定時の自動 JSON フォールバック |
-| `GEMINI_API_KEY` | `gemini`（`gemini-decision-1`） | 任意の専用判定プロンプトモデルおよび任意ライブ音声セッション |
+| `JIKU_PLANNER_API_KEY` | `primary`（`[providers.primary]`） | 主プランナー `[roles.planner]` のテキスト/VLM モデルおよび判定時の自動 JSON フォールバック |
+| `JIKU_DECISION_API_KEY` | `decision`（`[providers.decision]`） | 任意の専用判定モデルおよび任意ライブ音声セッション |
 | `KOMA_CAPABILITY_TOKEN` | Koma IPC（`koma-agent.sock`） | `komactl token mint jiku` で発行するスコープ付きリーストークン |
 
 > [!TIP]
-> **専用の判定モデルキーがない場合**: `GEMINI_API_KEY` が未設定（または `[roles.decision_router]` に OpenAI / Anthropic / vLLM / Ollama プロバイダを指定）でも、Jiku はエラーを出さず `[roles.planner]` の構造化 JSON 出力へ自動フォールバックします。
+> **専用の判定モデルキーがない場合**: 判定プロバイダのキーが未設定（または `[roles.decision_router]` に任意の OpenAI 互換 / Anthropic / vLLM / Ollama プロバイダを指定）でも、Jiku はエラーを出さず `[roles.planner]` の構造化 JSON 出力へ自動フォールバックします。
 
 ## 初回起動手順
 

@@ -25,27 +25,29 @@ image_token_estimate = 512
 keep_recent_images = 1
 a11y_max_entries_small_ctx = 28
 
-[providers.opencode_go]
-kind = "opencode_go"
-base_url = "https://opencode.ai/inference/go/openai/v1"
-api_key_env = "OPENCODE_GO_API_KEY"
+# プロバイダキー・エンドポイント・モデル ID は置き換えるプレースホルダーです。
+# `api_key_env` は各プロバイダキーを保持する環境変数名です。
+[providers.primary]
+kind = "openai_compatible"       # 任意の OpenAI 互換テキスト/VLM エンドポイント
+base_url = "https://your-planner-endpoint.example/v1"
+api_key_env = "JIKU_PLANNER_API_KEY"
 thinking = false
 
-[providers.gemini]
-kind = "google_gemini"
-base_url = "https://generativelanguage.googleapis.com/v1beta"
-api_key_env = "GEMINI_API_KEY"
+[providers.decision]
+kind = "google_gemini"           # ネイティブ判定エンドポイントドライバで必須
+base_url = "https://your-decision-endpoint.example/v1beta"
+api_key_env = "JIKU_DECISION_API_KEY"
 
 [roles.planner]
-provider = "opencode_go"
-model = "deepseek-v4.1-flash"
+provider = "primary"
+model = "<primary-text-model-id>"
 driver = "turn_sse"
 thinking = false
 temperature = 0.2
 
 [roles.decision_router]
-provider = "gemini"
-model = "gemini-decision-1"      # キー未設定時は主プランナーモデルへ自動フォールバック
+provider = "decision"
+model = "<decision-model-id>"      # キー未設定時は主プランナーモデルへ自動フォールバック
 driver = "decisions"
 optional = true
 fallback_to_primary_text_model = true
@@ -70,6 +72,46 @@ fallback_to_primary_text_model = true
 - **デスクトップ通知（`[notify]`）**: 既定で `desktop_dbus = true`・`app_name = "Jiku"` となり、`task_completed`、`task_failed`、`verification_needed`、`skill_staged` 発生時に `org.freedesktop.Notifications` / `notify-send` で通知します。
 - **任意 TTS（`[tts]`、既定で無効）**: `enabled = true` として `provider = "espeak_ng" | "irodori" | "voicevox" | "openai_speech" | "noop"`、`voice`、`audio_sink`（`"auto"`・`"pw-play"`・`"aplay"`・`"silent"` または任意コマンド）を選択できます。20 ms RMS のリップシンク音素タイムライン抽出と `AudioPlaybackSink` 割り込み再生を備えます。
 - **コンパニオンアバターステージ（`[avatar]`）**: `emit_cues = true` と `idle_gaze_follow_vseat = true` により、`jiku avatar serve` 経由で `Snapshot` / `AvatarCue` JSON パケット配信と `vseat` ポインタ追従視線制御を行います。
+
+## `config.lua`（サンドボックス化された Lua 設定）
+
+同じ型付き設定は Lua ドキュメントとしても受け付けます。拡張子で形式を選ぶか、`config.toml` を土台にして `config.lua` で差分だけを上書きします。
+
+| 呼び出し | 読み込まれるファイル |
+| :--- | :--- |
+| `--config <PATH>` / `$JIKU_CONFIG` | 指定したファイルのみ（`.toml` / `.lua`） |
+| 既定の探索・両方存在 | `config.toml` の後に `config.lua` をフィールド単位でマージ |
+| 既定の探索・片方のみ | そのファイルのみ |
+
+```lua
+-- ~/.config/jiku/config.lua
+jiku.config{
+    daemon = { locale = "ja-JP", socket_name = "jiku.sock" },
+    providers = {
+        primary = {
+            kind = "openai_compatible",
+            base_url = "https://your-planner-endpoint.example/v1",
+            api_key_env = "JIKU_PLANNER_API_KEY",
+        },
+        decision = {
+            kind = "google_gemini",
+            base_url = "https://your-decision-endpoint.example/v1beta",
+            api_key_env = "JIKU_DECISION_API_KEY",
+        },
+    },
+    roles = {
+        planner = { provider = "primary", model = "<primary-text-model-id>", driver = "turn_sse" },
+        decision_router = { provider = "decision", model = "<decision-model-id>", driver = "decisions", optional = true },
+    },
+}
+```
+
+- **フィールド単位マージ**：オブジェクトはキー単位でマージし、配列とスカラーは置換します。`jiku.config{...}` を複数回呼ぶと順に適用されます。
+- **`init.lua` と同じサンドボックス**：8 MiB のヒープ上限、決定論的フューエル、`io` / `os` / `dofile` / `loadfile` なし。環境変数を読めないため、`api_key_env` は変数名のままです。
+- **厳格なスキーマ**：未知のキーや型違いは該当フィールドパス付きで拒否され、暗黙の既定値にはなりません。
+- **単一のバリデータ**：両形式は同じ設定型へ変換され、同じ意味検証を通ります。
+
+`jikud --migrate-config --config ~/.config/jiku/config.toml --out ~/.config/jiku/config.lua` で既存ファイルを変換できます。ジェネレータは `--force` なしの上書きを拒否し、出力が同一設定へ再読込されることを検証します。
 
 ## Lua 設定（`~/.config/jiku/init.lua`）と `jikud.service`
 

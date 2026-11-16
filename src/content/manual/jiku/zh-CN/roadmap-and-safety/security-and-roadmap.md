@@ -17,7 +17,7 @@ Jiku 明确区分当前 `v0.0.x` 版本中已经实现的权限与隔离控制�
 | :--- | :--- | :--- | :--- | :--- |
 | **离线 `NoDecision + MinimalRaw`** | `0/4` | `69.64 px` | `136.46 px` | `9` |
 | **离线 `Decision + EnrichedGrounding`** | `4/4` | `0.00 px` | `1.52 px` | `0` |
-| **在线本地 `Qwen3VL-2B-Instruct-Q4_K_M`（`4096` ctx）** | 每组 `1/4`（`16/16` 次均完成） | 平均延迟 `1209–2331 ms` | — | 小参数 2B VLM 安全规则误报偏保守（`False Pos = true`） |
+| **在线本地小型 2B VLM（`4096` ctx）** | 每组 `1/4`（`16/16` 次均完成） | 平均延迟 `1209–2331 ms` | — | 小参数 2B VLM 安全规则误报偏保守（`False Pos = true`） |
 
 ![启用决策模型与系统信息锚定的 VirtualPaint 消融成图](https://cdn.komawm.org/media/v0.0.1/ablation-decision-enriched.png "启用决策门控与 SystemGroundingPack 空间锚定后的 VirtualPaint 输出（4/4 通过，1.52 px 倒角误差）。")
 

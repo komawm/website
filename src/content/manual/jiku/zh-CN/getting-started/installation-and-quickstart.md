@@ -37,16 +37,16 @@ cargo +1.100.0 build --release --locked -p jikud -p jiku
 
 ## API 密钥与环境变量
 
-`jikud` 仅从 `config.toml` 中 `api_key_env` 指定的环境变量读取凭据。切勿把明文密钥写入 `config.toml`。
+`jikud` 仅从 `config.toml` 或 `config.lua` 中 `api_key_env` 指定的环境变量读取凭据。切勿把明文密钥写入配置文件。
 
 | 环境变量 | 默认提供方 | 承担角色 |
 | :--- | :--- | :--- |
-| `OPENCODE_GO_API_KEY` | `opencode_go`（`deepseek-v4.1-flash`） | 主规划模型 `[roles.planner]`，以及未配置专用判定密钥时的结构化 JSON 回退 |
-| `GEMINI_API_KEY` | `gemini`（`gemini-decision-1`） | 可选专用判定模型，以及可选实时语音会话 |
+| `JIKU_PLANNER_API_KEY` | `primary`（`[providers.primary]`） | 主规划文本/VLM 模型 `[roles.planner]`，以及判定时的结构化 JSON 回退 |
+| `JIKU_DECISION_API_KEY` | `decision`（`[providers.decision]`） | 可选专用判定模型，以及可选实时语音会话 |
 | `KOMA_CAPABILITY_TOKEN` | Koma IPC（`koma-agent.sock`） | 通过 `komactl token mint jiku` 签发的作用域租约令牌 |
 
 > [!TIP]
-> **没有专用判定模型密钥？** 若未设置 `GEMINI_API_KEY`（或将 `[roles.decision_router]` 指向 OpenAI、Anthropic、vLLM 或 Ollama 提供方），Jiku 会自动回退到 `[roles.planner]` 并使用结构化 JSON 输出完成判定，不会报错。
+> **没有专用判定模型密钥？** 若判定提供方的密钥未设置（或将 `[roles.decision_router]` 指向任意 OpenAI 兼容、Anthropic、vLLM 或 Ollama 提供方），Jiku 会自动回退到 `[roles.planner]` 并使用结构化 JSON 输出完成判定，不会报错。
 
 ## 首次运行步骤
 

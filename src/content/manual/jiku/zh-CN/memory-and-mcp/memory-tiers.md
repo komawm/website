@@ -29,7 +29,7 @@ Jiku 将会话状态与本地全文历史保存在 `~/.local/state/jiku/state.db
 
 ## 小上下文预算与四阶段压缩瀑布
 
-针对紧凑本地模型（如 `llama-server` 上 `4096`–`8192` Token 窗口的 `Qwen3VL-2B-Instruct-Q4_K_M`），当提示词估算超出 `compaction_trigger_ratio`（`0.72`）时，`context_budget` 会按确定性顺序执行四阶段压缩，同时保证 `min_output_tokens`（`256`）至 `reserved_output_tokens`（`768`）的回复空间：
+针对紧凑本地模型（如 `llama-server` 上 `4096`–`8192` Token 窗口的小型 VLM），当提示词估算超出 `compaction_trigger_ratio`（`0.72`）时，`context_budget` 会按确定性顺序执行四阶段压缩，同时保证 `min_output_tokens`（`256`）至 `reserved_output_tokens`（`768`）的回复空间：
 
 1. **`stage1_visual_roi_pruning`**：仅保留最新的 `keep_recent_images`（`1`）张截图（每张按 `image_token_estimate = 512` 估算），丢弃历史冗余图像帧。
 2. **`stage2_a11y_skeleton_folding`**：将冗长的 AT-SPI2 子树折叠为最多 `a11y_max_entries_small_ctx`（`28`）个最相关的可交互 `@snap:eN` 节点。

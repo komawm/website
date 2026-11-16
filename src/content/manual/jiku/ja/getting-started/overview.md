@@ -22,9 +22,9 @@ Jiku は高速な画面チェック、多段階タスク計画、小コンテキ
 
 | 役割 | 用途 | 既定モデルとフォールバック |
 | :--- | :--- | :--- |
-| **判定プロンプト（`[roles.decision_router]`）** | 高速な UI 状態確認、`grid_225` 座標指定、安全確認、`~/JikuBox` 分類 | `gemini-decision-1`（`GEMINI_API_KEY`）。Gemini キー未設定時は主プランナーモデルへ自動フォールバックし、括弧バランス JSON 抽出で構造化判定を実施 |
-| **プランナーモデル（`[roles.planner]`）** | 多段階タスク計画、判定信頼度 `< 0.85` 時のエスカレーション、スキル草案作成 | [OpenCode Go](https://opencode.ai) `deepseek-v4.1-flash`（`thinking = false`）。OpenAI 互換・`llama-server`・Google AI Studio・Anthropic エンドポイントにも対応 |
-| **ライブ音声セッション（任意）** | 実験的な全二重音声トランスポート | Gemini `BidiGenerateContent` WebSocket（既定無効、PipeWire ライブマイク入力は `v0.1.0` 予定） |
+| **判定プロンプト（`[roles.decision_router]`）** | 高速な UI 状態確認、`grid_225` 座標指定、安全確認、`~/JikuBox` 分類 | 任意の専用判定モデル（`JIKU_DECISION_API_KEY`、ネイティブ零出力トークンエンドポイント）。未設定時は主プランナーモデルへ自動フォールバックし、括弧バランス JSON 抽出で構造化判定を実施 |
+| **プランナーモデル（`[roles.planner]`）** | 多段階タスク計画、判定信頼度 `< 0.85` 時のエスカレーション、スキル草案作成 | 任意のテキスト/VLM モデル（`JIKU_PLANNER_API_KEY`）。OpenAI 互換・`llama-server`・Google AI Studio・Anthropic エンドポイントに対応 |
+| **ライブ音声セッション（任意）** | 実験的な全二重音声トランスポート | 全二重 `BidiGenerateContent` WebSocket エンドポイント（既定無効、PipeWire ライブマイク入力は `v0.1.0` 予定） |
 
 ## Observe → Decide → Plan → Act ループ
 
